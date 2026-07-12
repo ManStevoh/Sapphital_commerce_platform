@@ -1,0 +1,25 @@
+{
+    "name": "commerce/cart",
+    "slug": "cart",
+    "version": "0.1.0",
+    "author": "SAPPHITAL",
+    "type": "product",
+    "requires": {
+        "platform/tenancy": ">=0.1.0",
+        "commerce/catalog": ">=0.1.0"
+    },
+    "permissions": [],
+    "providers": [
+        "Modules\\Commerce\\Cart\\CartServiceProvider"
+    ],
+    "routes": [
+        "routes/api.php"
+    ],
+    "migrations": "database/migrations",
+    "events": {
+        "publishes": [],
+        "subscribes": []
+    },
+    "menus": [],
+    "widgets": []
+}

@@ -1,0 +1,25 @@
+{
+    "name": "commerce/checkout",
+    "slug": "checkout",
+    "version": "0.1.0",
+    "author": "SAPPHITAL",
+    "type": "product",
+    "requires": {
+        "platform/tenancy": ">=0.1.0",
+        "commerce/cart": ">=0.1.0"
+    },
+    "permissions": [],
+    "providers": [
+        "Modules\\Commerce\\Checkout\\CheckoutServiceProvider"
+    ],
+    "routes": [
+        "routes/api.php"
+    ],
+    "migrations": "database/migrations",
+    "events": {
+        "publishes": [],
+        "subscribes": []
+    },
+    "menus": [],
+    "widgets": []
+}

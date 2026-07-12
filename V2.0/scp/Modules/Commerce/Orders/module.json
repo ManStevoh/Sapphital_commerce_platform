@@ -1,0 +1,27 @@
+{
+    "name": "commerce/orders",
+    "slug": "orders",
+    "version": "0.1.0",
+    "author": "SAPPHITAL",
+    "type": "product",
+    "requires": {
+        "platform/tenancy": ">=0.1.0",
+        "commerce/catalog": ">=0.1.0",
+        "commerce/cart": ">=0.1.0",
+        "commerce/checkout": ">=0.1.0"
+    },
+    "permissions": [],
+    "providers": [
+        "Modules\\Commerce\\Orders\\OrdersServiceProvider"
+    ],
+    "routes": [
+        "routes/api.php"
+    ],
+    "migrations": "database/migrations",
+    "events": {
+        "publishes": [],
+        "subscribes": []
+    },
+    "menus": [],
+    "widgets": []
+}

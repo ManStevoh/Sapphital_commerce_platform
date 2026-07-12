@@ -1,0 +1,24 @@
+{
+    "name": "commerce/catalog",
+    "slug": "catalog",
+    "version": "0.1.0",
+    "author": "SAPPHITAL",
+    "type": "product",
+    "requires": {
+        "platform/tenancy": ">=0.1.0"
+    },
+    "permissions": [],
+    "providers": [
+        "Modules\\Commerce\\Catalog\\CatalogServiceProvider"
+    ],
+    "routes": [
+        "routes/api.php"
+    ],
+    "migrations": "database/migrations",
+    "events": {
+        "publishes": [],
+        "subscribes": []
+    },
+    "menus": [],
+    "widgets": []
+}
