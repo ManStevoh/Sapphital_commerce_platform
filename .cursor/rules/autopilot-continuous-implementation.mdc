@@ -1,0 +1,56 @@
+---
+description: Autopilot — continue to next pending work without waiting for user to say proceed
+alwaysApply: true
+---
+
+# Autopilot — Continuous Implementation
+
+When working on SAPPHITAL SCP (`V2.0/scp/`), **never stop and wait** for the user to say "proceed" after completing a step. Automatically pick up the next pending item and continue.
+
+## Session loop (mandatory)
+
+```text
+1. Read Master Execution Plan + current phase playbook for pending items
+2. Pick the highest-priority incomplete item (Phase 1 first, then 2, 3, 4)
+3. Implement ONE concern with tests (backend) or functional UI (frontend)
+4. Run tests in background; fix failures before moving on
+5. Mark item done in tracking (todo list / docs if applicable)
+6. IMMEDIATELY start the next pending item — no handoff pause
+```
+
+## Priority order
+
+1. **Phase 1 Nigeria GA exit criteria** — [Master Plan §5.4](../../V2.0/docs/21-implementation-playbooks/00-master-execution-plan.md)
+2. **Phase 1 playbooks** — Ch. 02–06 unchecked items that are **engineering-buildable**
+3. **Phase 2+** — only after Phase 1 exit criteria are met
+
+## Do not skip
+
+- Do not skip pending development work to jump ahead cosmetically.
+- Do not declare a step "done" without tests (backend) or functional UI (frontend).
+- Do not restructure mid-phase unless blocked; scaffold future apps with README only.
+- Legal/ops blockers (NDPC, live PSP keys) — document as blocked; continue engineering items.
+
+## Quality floor (non-negotiable)
+
+- `composer test` must pass before moving to next backend step.
+- No UI in `Platform/`, `Modules/`, `Connectors/` — only in `apps/`.
+- Read spec before implementing (`doc-first-implementation.mdc`).
+- Sync module docs when API/DB/events change.
+
+## Speed tactics
+
+- **Composer-first** — parent agent handles focused and heavy work; see `agent-cost-balance.mdc`.
+- Batch independent reads/edits in parallel; use Grep/Glob instead of subagents for audits.
+- Run long commands in background (`background-commands-default.mdc`).
+- Do not delegate to expensive subagents unless `agent-cost-balance.mdc` allows it.
+
+## End-of-turn behavior
+
+When a step completes, the response should **briefly note what was done** and **what starts next** — then **continue implementing** in the same session until blocked or context limits require a handoff.
+
+If blocked (missing secrets, legal sign-off, user decision), log the blocker and **immediately** switch to the next unblocked item.
+
+## Phase completion definition
+
+A phase is complete when its playbook exit criteria and Master Plan § exit checklist are satisfied — not when scaffolding exists.
