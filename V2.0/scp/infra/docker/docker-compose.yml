@@ -1,0 +1,111 @@
+# SAPPHITAL SCP — Local / staging full stack
+# Spec: Vol 10 Ch. 04 (PostgreSQL 16, Redis 7, Meilisearch), Ch. 07 (staging parity)
+# Traceability: ADR-002 (shared DB + RLS), ADR-011 (Nigeria-first local parity)
+
+name: sapphital-scp
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: scp-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-scp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-scp_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-scp}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - scp_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-scp} -d ${POSTGRES_DB:-scp}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - scp
+
+  redis:
+    image: redis:7-alpine
+    container_name: scp-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - scp_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - scp
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12
+    container_name: scp-meilisearch
+    restart: unless-stopped
+    ports:
+      - "${MEILISEARCH_PORT:-7700}:7700"
+    environment:
+      MEILI_ENV: ${MEILI_ENV:-development}
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-scp_dev_master_key_change_me}
+      MEILI_NO_ANALYTICS: "true"
+    volumes:
+      - scp_meilisearch_data:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - scp
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: scp-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-8000}:8000"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    networks:
+      - scp
+
+volumes:
+  scp_postgres_data:
+    name: scp_postgres_data
+  scp_redis_data:
+    name: scp_redis_data
+  scp_meilisearch_data:
+    name: scp_meilisearch_data
+
+networks:
+  scp:
+    name: scp_network
+    driver: bridge
