@@ -1,0 +1,37 @@
+{
+  "id": "scp-terminal",
+  "name": "Terminal Tech",
+  "version": "0.1.0",
+  "schema_version": "1.0",
+  "author": "SAPPHITAL",
+  "description": "Dark tech reference theme for electronics and gadgets — high-contrast UI optimised for spec-heavy product pages.",
+  "market": "NG",
+  "templates": [
+    "index",
+    "product",
+    "collection",
+    "cart",
+    "checkout",
+    "page"
+  ],
+  "settings_schema": "settings.schema.json",
+  "defaults": "defaults.json",
+  "colors": {
+    "primary": "#0D1B2A",
+    "secondary": "#1B263B",
+    "accent": "#415A77",
+    "background": "#0D1B2A",
+    "foreground": "#E0E1DD"
+  },
+  "sections": [
+    "announcement-bar",
+    "header",
+    "hero",
+    "category-tiles",
+    "product-grid",
+    "trust-bar",
+    "faq",
+    "newsletter",
+    "footer"
+  ]
+}

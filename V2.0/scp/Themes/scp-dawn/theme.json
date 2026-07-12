@@ -1,0 +1,37 @@
+{
+  "id": "scp-dawn",
+  "name": "Lagos Atelier",
+  "version": "0.1.0",
+  "schema_version": "1.0",
+  "author": "SAPPHITAL",
+  "description": "Nigeria-first reference retail theme — mobile-optimized for Lagos 4G, NGN pricing, Paystack-ready checkout.",
+  "market": "NG",
+  "templates": [
+    "index",
+    "product",
+    "collection",
+    "cart",
+    "checkout",
+    "page"
+  ],
+  "settings_schema": "settings.schema.json",
+  "defaults": "defaults.json",
+  "colors": {
+    "primary": "#1B4332",
+    "secondary": "#2D6A4F",
+    "accent": "#E9C46A",
+    "background": "#FEFAE0",
+    "foreground": "#1A1A1A"
+  },
+  "sections": [
+    "announcement-bar",
+    "header",
+    "hero",
+    "category-tiles",
+    "product-grid",
+    "trust-bar",
+    "faq",
+    "newsletter",
+    "footer"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Savanna Market Theme Settings",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "primary_color": {
+      "type": "string",
+      "title": "Primary colour",
+      "description": "Brand primary colour (hex). Default: warm saddle brown.",
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "default": "#8B4513"
+    },
+    "font_heading": {
+      "type": "string",
+      "title": "Heading font",
+      "description": "Font family for headings and store name.",
+      "enum": ["Inter", "DM Sans", "Playfair Display", "Source Sans 3"],
+      "default": "DM Sans"
+    },
+    "logo_url": {
+      "type": ["string", "null"],
+      "title": "Logo URL",
+      "description": "Merchant logo served via CDN. Null uses store name text.",
+      "format": "uri",
+      "default": null
+    }
+  },
+  "required": ["primary_color", "font_heading"]
+}

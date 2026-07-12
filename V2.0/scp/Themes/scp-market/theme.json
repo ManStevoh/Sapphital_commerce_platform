@@ -1,0 +1,37 @@
+{
+  "id": "scp-market",
+  "name": "Savanna Market",
+  "version": "0.1.0",
+  "schema_version": "1.0",
+  "author": "SAPPHITAL",
+  "description": "Warm earth-tone reference theme for general retail — open-air market feel, mobile-friendly product browsing.",
+  "market": "NG",
+  "templates": [
+    "index",
+    "product",
+    "collection",
+    "cart",
+    "checkout",
+    "page"
+  ],
+  "settings_schema": "settings.schema.json",
+  "defaults": "defaults.json",
+  "colors": {
+    "primary": "#8B4513",
+    "secondary": "#A0522D",
+    "accent": "#D2691E",
+    "background": "#F5E6D3",
+    "foreground": "#3E2723"
+  },
+  "sections": [
+    "announcement-bar",
+    "header",
+    "hero",
+    "category-tiles",
+    "product-grid",
+    "trust-bar",
+    "faq",
+    "newsletter",
+    "footer"
+  ]
+}
