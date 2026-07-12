@@ -1,0 +1,61 @@
+---
+description: Performance, security, decoupling, and million-scale readiness — non-negotiable for all SCP code
+alwaysApply: true
+---
+
+# Performance · Security · Scale (SCP)
+
+Design for **1M+ merchants, products, customers, and daily transactions** without degradation. Speed and security are not optional polish — they are architecture.
+
+Full standards: [Engineering Standards §13–16](V2.0/docs/00-meta/engineering-standards.md) · NFRs: [Vol 1 Ch. 09](V2.0/docs/01-vision/09-non-functional-requirements.md)
+
+## Speed (mandatory)
+
+- Meet latency budgets: API read p95 ≤ 200ms, write p95 ≤ 500ms, DB query p95 ≤ 50ms (NFR-003/004/007)
+- **No N+1 queries** — use eager loading with explicit limits; profile hot paths
+- **No unbounded queries** — always paginate (cursor-based for large lists); cap `limit` server-side
+- **Cache-aside** for read-heavy, tenant-scoped data (Redis); define TTL in module CONFIG.md
+- **Async by default** for side effects: notifications, search index, analytics, webhooks → queue jobs
+- Storefront: SSR/ISR, LCP ≤ 2s, JS ≤ 150KB gzipped (NFR-001, NFR-009)
+- Laravel Octane-safe: no mutable static state; no request data in singletons
+
+## Decoupled (mandatory)
+
+- Cross-package communication: **domain events** or published interfaces only — never direct Eloquent across packages
+- Checkout/payments: FSL contracts only — never import Connectors from Commerce
+- Heavy orchestration in Application Actions; thin controllers
+- Idempotency-Key on state/money-creating POST endpoints
+- Fail fast with clear errors; never silent swallow in payment/auth/tenant paths
+
+## Secure (mandatory)
+
+- **Fail-closed**: missing tenant context or failed auth → deny, never fallback to global data
+- RLS + `tenant_id` on every tenant table; isolation tests required (NFR-040)
+- Policy on every route; validate all input server-side (allowlist)
+- Webhooks: verify signatures; payments: ADR-004 SAQ A — no raw PAN
+- Rate-limit public endpoints (per IP + per tenant); redact PII in logs
+- Secrets via `Platform/Secrets/` only (ADR-007)
+
+## Scalable (mandatory)
+
+- **Stateless** app workers; sessions/cache in Redis; horizontal scale without sticky sessions
+- Indexes on `tenant_id`, foreign keys, and filter columns **before** shipping list endpoints
+- Bulk operations via queues — never synchronous loop over 1000+ rows in HTTP request
+- Database: avoid table locks; use chunk/cursor for batch jobs; document partition path in DATABASE.md
+- Design tables and APIs so 1M rows per tenant does not require redesign (UUID PKs, cursor pagination)
+- Circuit-breaker / timeout on external Connectors; never block checkout on non-critical calls
+
+## Forbidden anti-patterns
+
+- `SELECT *` on large tables without LIMIT
+- Synchronous HTTP to PSP/search/AI in user-facing request path (except redirect init)
+- Float for money; missing indexes on hot list queries
+- Global cache keys without tenant prefix
+- `sleep()` or busy-wait for retries in web requests
+
+## Before merge — ask
+
+1. Will this stay fast at 10× current data volume?
+2. Does this work with 4+ Octane workers concurrently?
+3. Is tenant isolation provable by test?
+4. Are side effects queued, not inline?
