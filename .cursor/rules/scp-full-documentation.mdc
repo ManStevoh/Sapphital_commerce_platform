@@ -1,0 +1,28 @@
+---
+description: SCP documentation must be complete end-to-end, never partial placeholders
+globs: V2.0/docs/**/*.md
+alwaysApply: false
+---
+
+# SCP Documentation — Full Specification Only
+
+When authoring SCP engineering specification volumes:
+
+## Required
+
+- Write **complete chapters** with purpose, scope, architecture impact, data ownership, APIs/events, security, acceptance criteria, and sources where applicable.
+- Follow templates in `V2.0/docs/00-meta/research-and-synthesis-program.md`.
+- Cross-reference Volume 1 NFRs, PRDs, and existing ADRs in `V2.0/docs/00-meta/adr/`.
+- **Nigeria is the primary market**; include Africa-wide expansion (Kenya, Ghana, etc.).
+- Use Mermaid for diagrams; stable doc IDs in chapter headers.
+
+## Forbidden
+
+- README-only volumes with "planned" stubs as the only content.
+- Placeholder sections: "TBD", "coming soon", "to be written", empty chapter shells.
+- Partial module specs missing business rules, state machines, or tenant isolation.
+
+## File naming
+
+- Chapters: `NN-descriptive-name.md` inside `docs/NN-topic/`
+- Update each volume `README.md` with a chapter index and status ✅ when chapters exist.
