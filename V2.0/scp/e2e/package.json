@@ -1,0 +1,15 @@
+{
+  "name": "@sapphital/scp-e2e",
+  "private": true,
+  "description": "Playwright E2E scaffold for SAPPHITAL SCP Nigeria GA launch",
+  "scripts": {
+    "test": "playwright test",
+    "test:api": "node api/nigeria-ga.test.mjs",
+    "test:api:playwright": "playwright test nigeria-ga-api.spec.ts",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0"
+  }
+}
