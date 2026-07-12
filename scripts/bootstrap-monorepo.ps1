@@ -85,7 +85,7 @@ foreach ($c in $components) {
 
     if ($count % $PushEvery -eq 0) {
         Write-Host "Pushing batch..."
-        Start-Job -ScriptBlock { Set-Location $using:Root; git push origin main 2>&1 } | Out-Null
+        git push origin main 2>&1
     }
 }
 
@@ -100,11 +100,11 @@ foreach ($f in $remaining) {
     git commit -m "feat: add $norm"
     $count++
     if ($count % $PushEvery -eq 0) {
-        Start-Job -ScriptBlock { Set-Location $using:Root; git push origin main 2>&1 } | Out-Null
+        git push origin main 2>&1
     }
 }
 
-Get-Job | Wait-Job | Out-Null
+Get-Job | Wait-Job -ErrorAction SilentlyContinue | Out-Null
 Write-Host "Final push..."
 git push -u origin main 2>&1
 $total = git rev-list --count HEAD
