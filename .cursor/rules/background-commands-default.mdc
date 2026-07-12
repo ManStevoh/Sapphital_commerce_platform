@@ -1,0 +1,29 @@
+---
+description: Run shell commands and test suites in background by default
+alwaysApply: true
+---
+
+# Background Commands Default
+
+When using the Shell tool, **always run commands in the background** unless the user explicitly asks to wait for output inline.
+
+## Shell tool defaults
+
+- Set `block_until_ms: 0` for **every** Shell invocation by default.
+- Use `Await` to poll for completion when you need results before continuing.
+- Long-running commands (tests, builds, installs, servers): always `block_until_ms: 0`, then `Await` with an appropriate timeout pattern.
+
+## Tests
+
+- Run `composer test`, `phpunit`, `npm test`, Playwright, and CI-equivalent commands **in background first**.
+- Continue other work while tests run; poll with `Await` before reporting pass/fail to the user.
+- Do not ask the user to click "Run in background" — background is the default.
+
+## Exceptions (foreground OK)
+
+- Trivial instant commands where background adds no value (e.g. `echo`, single-line `git rev-parse`).
+- User explicitly says "wait for output", "run in foreground", or "block until done".
+
+## Reporting
+
+When tests finish in background, report the final count and any failures from the terminal output file.
