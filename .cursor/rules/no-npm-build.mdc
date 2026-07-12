@@ -1,0 +1,30 @@
+---
+description: Do not run npm/composer install or build/dev servers unless the user explicitly asks
+alwaysApply: true
+---
+
+# No Build / Install Unless Instructed
+
+Do **not** run any of the following unless the user **explicitly requests it in the current message**:
+
+- `npm install` / `npm ci`
+- `npm run build` / `npm run start` / `npm run serve` / `npm run dev`
+- `yarn install` / `pnpm install`
+- Docusaurus build or dev server commands
+- `composer install` / `composer update` (unless user asked to install dependencies)
+
+## Allowed without explicit request
+
+- Editing Markdown in `V2.0/docs/`
+- Editing `V2.0/docs-site/sidebars.js` or `docusaurus.config.js`
+- Reading files and writing documentation content
+- **Running tests:** `./vendor/bin/pest`, `php artisan test`, Vitest on changed files, Playwright when user asked to verify flows
+- Lint/format on changed files when verifying quality (Pint, PHPStan, ESLint)
+
+## When the user asks to build
+
+Only then run install/build, and prefer `npm install` or `composer install` only if dependencies are missing.
+
+## Quality still required without build
+
+Even when not building frontend bundles, code must be tested (see `.cursor/rules/testing-and-quality.mdc`) and must not ship broken flows or server errors.
