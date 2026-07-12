@@ -1,0 +1,62 @@
+{
+    "name": "sapphital/platform-financial-services",
+    "description": "SAPPHITAL Platform OS — Financial Services Layer (FSL)",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "illuminate/database": "^12.0",
+        "illuminate/http": "^12.0",
+        "illuminate/support": "^12.0",
+        "illuminate/routing": "^12.0",
+        "sapphital/connector-paystack": "@dev",
+        "sapphital/commerce-checkout": "@dev",
+        "sapphital/platform-tenancy": "@dev"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../../Connectors/Paystack",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../../Modules/Commerce/Checkout",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../Tenancy",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Platform\\FinancialServices\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Platform\\FinancialServices\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Platform\\FinancialServices\\FinancialServicesServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

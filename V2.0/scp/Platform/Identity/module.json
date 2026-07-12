@@ -1,0 +1,24 @@
+{
+    "name": "platform/identity",
+    "slug": "identity",
+    "version": "0.1.0",
+    "author": "SAPPHITAL",
+    "type": "kernel",
+    "requires": {
+        "platform/kernel": ">=0.1.0"
+    },
+    "permissions": [],
+    "providers": [
+        "Platform\\Identity\\IdentityServiceProvider"
+    ],
+    "routes": [
+        "routes/api.php"
+    ],
+    "migrations": "database/migrations",
+    "events": {
+        "publishes": [],
+        "subscribes": []
+    },
+    "menus": [],
+    "widgets": []
+}

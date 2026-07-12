@@ -1,0 +1,110 @@
+{
+
+    "name": "sapphital/platform-provisioning",
+
+    "description": "SAPPHITAL Platform OS — Tenant Provisioning Engine (TPE)",
+
+    "type": "library",
+
+    "license": "proprietary",
+
+    "require": {
+
+        "php": "^8.3",
+
+        "illuminate/bus": "^12.0",
+
+        "illuminate/database": "^12.0",
+
+        "illuminate/queue": "^12.0",
+
+        "illuminate/routing": "^12.0",
+
+        "illuminate/support": "^12.0",
+
+        "illuminate/validation": "^12.0",
+
+        "sapphital/platform-billing": "@dev",
+
+        "sapphital/platform-tenancy": "@dev",
+
+        "sapphital/commerce-catalog": "@dev"
+
+    },
+
+    "require-dev": {
+
+        "orchestra/testbench": "^10.0",
+
+        "phpunit/phpunit": "^11.0"
+
+    },
+
+    "repositories": [
+
+        {
+
+            "type": "path",
+
+            "url": "../Tenancy"
+
+        },
+
+        {
+
+            "type": "path",
+
+            "url": "../Billing"
+
+        },
+
+        {
+
+            "type": "path",
+
+            "url": "../../Modules/Commerce/Catalog"
+
+        }
+
+    ],
+
+    "autoload": {
+
+        "psr-4": {
+
+            "Platform\\Provisioning\\": "src/"
+
+        }
+
+    },
+
+    "autoload-dev": {
+
+        "psr-4": {
+
+            "Platform\\Provisioning\\Tests\\": "tests/"
+
+        }
+
+    },
+
+    "extra": {
+
+        "laravel": {
+
+            "providers": [
+
+                "Platform\\Provisioning\\ProvisioningServiceProvider"
+
+            ]
+
+        }
+
+    },
+
+    "minimum-stability": "stable",
+
+    "prefer-stable": true
+
+}
+

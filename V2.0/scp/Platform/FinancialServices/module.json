@@ -1,0 +1,24 @@
+{
+    "name": "platform/financial-services",
+    "slug": "financial-services",
+    "version": "0.1.0",
+    "author": "SAPPHITAL",
+    "type": "kernel",
+    "requires": {
+        "platform/kernel": ">=0.1.0"
+    },
+    "permissions": [],
+    "providers": [
+        "Platform\\FinancialServices\\FinancialServicesServiceProvider"
+    ],
+    "routes": [
+        "routes/api.php"
+    ],
+    "migrations": "database/migrations",
+    "events": {
+        "publishes": [],
+        "subscribes": []
+    },
+    "menus": [],
+    "widgets": []
+}
