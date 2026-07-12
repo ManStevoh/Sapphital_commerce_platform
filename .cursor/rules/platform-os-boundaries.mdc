@@ -1,0 +1,34 @@
+---
+description: Platform OS package boundaries — ADR-023 import and layer rules
+globs: Platform/**/*,Modules/**/*,Connectors/**/*,AI/**/*,apps/**/*
+alwaysApply: false
+---
+
+# Platform OS Boundaries (ADR-023)
+
+Layout: `Platform/` (kernel + services), `Modules/` (products), `Connectors/`, `AI/`, `apps/` (clients), `Packages/` (shared).
+
+## Forbidden
+
+- `Platform/*` importing `Modules/*` or `Connectors/*` domain code
+- `Connectors/*` importing `Modules/*`
+- Business logic in `apps/*` (API clients only)
+- Cross-module Eloquent relations or direct table access
+- Payment/shipping SDK calls outside FSL / Platform/Shipping contracts
+
+## Allowed cross-package
+
+- Domain events (async)
+- Published query interfaces
+- `Packages/shared/` value objects
+- Platform service facades documented in module ARCHITECTURE.md
+
+## New package scaffold
+
+Follow [Module Template](V2.0/docs/00-meta/module-template.md): `module.json`, full `docs/` contract, ServiceProvider.
+
+Cross-package communication: **events** or interfaces — never sync coupling that blocks scale.
+
+Performance: no N+1; paginate all lists; queue side effects; tenant-prefixed cache keys.
+
+See [Engineering Standards §13–16](V2.0/docs/00-meta/engineering-standards.md).
