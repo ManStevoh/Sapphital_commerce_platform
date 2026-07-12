@@ -1,0 +1,22 @@
+{
+    "name": "connectors/paystack",
+    "slug": "paystack",
+    "version": "0.1.0",
+    "author": "SAPPHITAL",
+    "type": "connector",
+    "requires": {
+        "platform/financial-services": ">=0.1.0"
+    },
+    "permissions": [],
+    "providers": [
+        "Connectors\\Paystack\\PaystackServiceProvider"
+    ],
+    "routes": [],
+    "migrations": null,
+    "events": {
+        "publishes": [],
+        "subscribes": []
+    },
+    "menus": [],
+    "widgets": []
+}

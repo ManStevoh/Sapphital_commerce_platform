@@ -1,0 +1,33 @@
+{
+    "name": "sapphital/connector-paystack",
+    "description": "SAPPHITAL Paystack PSP connector — transaction initialize and verify",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "illuminate/support": "^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Connectors\\Paystack\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Connectors\\Paystack\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Connectors\\Paystack\\PaystackServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
