@@ -1,0 +1,36 @@
+---
+description: Documentation is source of truth — read specs before implementing SCP code
+alwaysApply: true
+---
+
+# Doc-First Implementation (SCP)
+
+You are an **implementation engineer**, not the architect. `V2.0/docs/` is source of truth.
+
+## Before writing or changing implementation code
+
+1. Read [Engineering Knowledge Base](V2.0/docs/00-meta/engineering-knowledge-base.md) if unfamiliar with workflow
+2. Read [Engineering Standards](V2.0/docs/00-meta/engineering-standards.md)
+3. Read the **task read list** (volume chapters + package `docs/ARCHITECTURE.md`)
+4. Read [Platform OS Ch. 13](V2.0/docs/03-architecture/13-platform-os-architecture.md) for cross-package work
+
+## Rules
+
+- Implement **exactly** what the specification and task acceptance criteria describe
+- **Do not** introduce architecture, patterns, or dependencies not in docs or ADRs
+- **Stop and explain** if code cannot match documentation — propose doc fix or ADR, do not guess
+- Cite Document IDs (FR-, ADR-, SCP-*) in PR-ready summaries
+- One concern per session: DB **or** backend **or** frontend — not entire modules at once
+- **Speed, security, scale are mandatory** — see `.cursor/rules/performance-security-scalability.mdc` and Engineering Standards §13–16
+- **All code tested; fix test failures** — see `.cursor/rules/testing-and-quality.mdc`
+
+## After implementation
+
+- Update package `docs/API.md`, `EVENTS.md`, `DATABASE.md` when contracts change
+- Add tests per Vol 13 and module `docs/TESTING.md`; **run tests and fix failures before completing**
+- Update `CHANGELOG.md` on package semver changes
+- No broken flows: no 500s, no white screens on touched routes
+
+## Prompt opener (when user gives a feature request)
+
+Ask for or infer: Task ID, spec references, read list. If missing, locate relevant volume chapter before coding.
