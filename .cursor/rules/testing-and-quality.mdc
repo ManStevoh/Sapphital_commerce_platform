@@ -1,0 +1,62 @@
+---
+description: All code must be tested; fix failures; no broken UI or server errors; no build unless asked
+alwaysApply: true
+---
+
+# Testing & Quality (SCP)
+
+**No untested code. No broken flows. No shipping errors.**
+
+Standards: [Engineering Standards §6–7](V2.0/docs/00-meta/engineering-standards.md) · [Vol 13 Testing](V2.0/docs/13-testing/README.md)
+
+## Testing is mandatory
+
+- **Every change** includes tests: new code → new tests; bug fix → regression test
+- Run relevant tests after implementation; **fix all failures before finishing** — do not leave red tests
+- **Full flow coverage** for the feature: happy path + auth failure + validation errors + tenant isolation where applicable
+- Critical paths (auth, payments, checkout, tenant RLS): 100% branch coverage required
+
+| Layer | Tool | When |
+|-------|------|------|
+| PHP Actions / Domain | Pest unit | Every use case |
+| HTTP API | Pest feature | Every route (200/201, 403, 422) |
+| Tenant isolation | Pest + PostgreSQL | Any data access change |
+| React / Next.js | Vitest + component tests | Non-trivial UI logic |
+| User flows | Playwright | Checkout, CRUD, auth flows |
+
+## Zero broken code policy
+
+- **Do not mark work complete** if tests fail, linter errors remain, or the app throws
+- **Backend:** no uncaught exceptions in normal flows; no HTTP 500 for expected cases — return 4xx with Problem Details
+- **Frontend:** no white screens — every route must render loading, empty, error, and success states (Vol 4)
+- **Frontend:** no unhandled promise rejections; error boundaries on app shells
+- Fix **root cause**, not suppress errors with empty catch blocks or `@ts-ignore` without justification
+
+## Before finishing a task
+
+1. Run tests for touched packages (`php artisan test`, targeted Pest, Vitest as applicable)
+2. If tests fail → fix code or fix tests to match spec — never skip
+3. Verify the user flow end-to-end when changing a feature (manual or E2E if available)
+4. Confirm no new PHPStan/Pint/ESLint violations in changed files
+
+## Build & install commands
+
+**Do not run build or install unless the user explicitly requests it in the current message.**
+
+Forbidden without explicit request:
+
+- `npm install` / `npm ci` / `npm run build` / `npm run dev` / `yarn` / `pnpm`
+- Docusaurus build or dev server
+- `composer install` (unless user asked to set up dependencies)
+
+Allowed: `php artisan test`, `./vendor/bin/pest`, targeted lint on changed files, reading/running single test files.
+
+See `.cursor/rules/no-npm-build.mdc`.
+
+## Definition of done
+
+- [ ] Tests written and **passing**
+- [ ] Full feature flow tested (not only unit-isolated happy path)
+- [ ] No 500 errors in normal operation
+- [ ] No white screen / crash on frontend routes touched
+- [ ] Task acceptance criteria from spec verified
