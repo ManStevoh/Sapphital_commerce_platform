@@ -1,0 +1,39 @@
+---
+description: Composer-first — parent agent does the work; avoid expensive subagents
+alwaysApply: true
+---
+
+# Composer-First Agent Policy
+
+**Composer is the main agent** for this project — for routine tasks, speed, and heavy work. Do the work directly in the parent session; do not delegate to expensive subagents by default.
+
+## Default: Composer does it
+
+1. **Implement, search, debug, and orchestrate in the parent session** — no Task tool unless a row below says otherwise.
+2. **Heavy work stays on Composer** — multi-file features, refactors, test fixes, playbook steps, and cross-package changes are parent-agent work, not subagent work.
+3. **Use direct tools first** — Read, Grep, Glob, Shell, and parallel tool calls beat launching subagents.
+4. **Batch parallel reads/edits** in one turn when files are independent.
+
+## When subagents are allowed (rare)
+
+| Situation | Action |
+|-----------|--------|
+| Find files / routes / patterns | Grep/Glob/Read in parent — no subagent |
+| Multi-file feature or refactor | Composer parent — no subagent |
+| Cross-cutting audit (10+ packages) | Composer parent with parallel Grep/Read |
+| Single failing PR CI check | `ci-investigator` only |
+| User explicitly asks for a subagent | Use `composer-2.5-fast` unless they name another model |
+
+**Forbidden by default:** `generalPurpose`, `explore`, and thinking-high models (`claude-*-thinking-high`, `gpt-5.6-*-medium`, etc.).
+
+## Subagent rules (only when unavoidable)
+
+- **Model:** `composer-2.5-fast` — never thinking-high unless the user explicitly requests it.
+- **One subagent at a time** unless two independent tracks genuinely unblock each other.
+- **Never** launch a subagent when Read + Grep would answer the question.
+- Report what was done in Composer vs what was delegated.
+
+## Quality floor
+
+- Never skip tests or spec reads to save tokens.
+- Composer-first saves cost; it does **not** lower quality — tests and doc-first rules still apply.
