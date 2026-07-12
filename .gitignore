@@ -1,0 +1,53 @@
+# Dependencies
+**/vendor/
+**/node_modules/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+**/storage/secrets/*
+!**/storage/secrets/.gitignore
+auth.json
+
+# Laravel / PHP runtime
+**/bootstrap/cache/*.php
+!**/bootstrap/cache/.gitignore
+**/storage/logs/*
+!**/storage/logs/.gitignore
+**/storage/framework/cache/*
+!**/storage/framework/cache/.gitignore
+**/storage/framework/sessions/*
+!**/storage/framework/sessions/.gitignore
+**/storage/framework/views/*
+!**/storage/framework/views/.gitignore
+**/storage/*.key
+.phpunit.result.cache
+.phpunit.cache
+
+# Build artifacts
+**/.docusaurus/
+**/docs-site/build/
+**/dist/
+**/.next/
+**/out/
+**/.turbo/
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs & debug
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# User uploads (regenerate at runtime)
+marketplace/assets/uploads/**
+
+# Package manager locks in nested packages (root lockfiles kept)
+# Composer/npm lockfiles at project roots are tracked
