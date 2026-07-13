@@ -148,10 +148,10 @@ Per [Volume 5 Ch. 13–14](../05-commerce-engine/13-subscriptions-and-gift-cards
 
 ### 4.2 Gift Cards
 
-- [ ] Gift card product type with preset denominations (₦5,000, ₦10,000, ₦25,000)
-- [ ] Unique code generation; balance tracking
-- [ ] Redemption at checkout
-- [ ] Partial redemption supported
+- [x] Gift card product type with preset denominations (₦5,000, ₦10,000, ₦25,000)
+- [x] Unique code generation; balance tracking
+- [x] Redemption at checkout
+- [x] Partial redemption supported
 
 ### 4.3 Customer Accounts (Enhanced)
 
@@ -264,7 +264,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 | 3 | Search facets + analytics | §2 | ☑ |
 | 4 | Smart collections | §2 | ☑ |
 | 5 | AI description + SEO gen | Gate §3 | ☑ |
-| 6 | Digital products + gift cards | §4 | partial |
+| 6 | Digital products + gift cards | §4 | ☑ |
 | 7 | Customer accounts | §4 | ☐ |
 | 8 | Infra Phase 2 topology | Gate §5 | ☐ |
 | 9 | Outbox pattern | §5.2 | ☐ |

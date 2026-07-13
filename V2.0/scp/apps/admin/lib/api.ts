@@ -1600,3 +1600,58 @@ export async function updateAiSettings(
   const result = await parseJson<{ data: { ai_enabled: boolean } }>(response);
   return result.data;
 }
+
+export interface GiftCard {
+  id: string;
+  code: string;
+  initial_balance_kobo: number;
+  balance_kobo: number;
+  currency: string;
+  status: string;
+  expires_at: string | null;
+  purchaser_email: string | null;
+  recipient_email: string | null;
+}
+
+export async function issueGiftCard(
+  tenantId: string,
+  input: {
+    denomination_kobo: number;
+    purchaser_email?: string;
+    recipient_email?: string;
+  },
+): Promise<GiftCard> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/gift-cards`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: GiftCard }>(response);
+  return result.data;
+}
+
+export async function lookupGiftCard(tenantId: string, code: string): Promise<GiftCard> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/gift-cards/by-code/${encodeURIComponent(code)}`,
+    {
+      headers: tenantHeaders(tenantId),
+    },
+  );
+  const result = await parseJson<{ data: GiftCard }>(response);
+  return result.data;
+}
+
+export async function disableGiftCard(tenantId: string, giftCardId: string): Promise<GiftCard> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/gift-cards/${encodeURIComponent(giftCardId)}/disable`,
+    {
+      method: 'POST',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+  const result = await parseJson<{ data: GiftCard }>(response);
+  return result.data;
+}

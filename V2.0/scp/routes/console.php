@@ -15,3 +15,4 @@ Schedule::command('scp:reconcile-nightly')->dailyAt('02:00');
 Schedule::command('scp:reconcile-pending-payments')->everyFifteenMinutes();
 Schedule::command('cms:process-scheduled-content')->everyMinute();
 Schedule::command('catalog:process-scheduled-collections')->everyMinute();
+Schedule::command('checkout:expire-gift-cards')->hourly();

@@ -12,11 +12,16 @@ use Modules\Commerce\Cart\Models\Cart;
 use Modules\Commerce\Catalog\Models\Product;
 use Modules\Commerce\Catalog\Models\ProductDigitalAsset;
 use Modules\Commerce\Checkout\Models\CheckoutSession;
+use Modules\Commerce\Checkout\Services\GiftCardService;
 use Modules\Commerce\Orders\Models\Order;
 use Modules\Commerce\Orders\Models\OrderItem;
 
 final class OrderService
 {
+    public function __construct(
+        private readonly GiftCardService $giftCards,
+    ) {}
+
     /**
      * @throws ValidationException
      */
@@ -90,6 +95,8 @@ final class OrderService
             $session->update([
                 'status' => CheckoutSession::STATUS_COMPLETED,
             ]);
+
+            $this->giftCards->finalizeRedemption($session, $order->id);
 
             return $order->load('items');
         });

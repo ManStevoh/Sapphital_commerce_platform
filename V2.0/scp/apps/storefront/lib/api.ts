@@ -120,6 +120,12 @@ export interface CheckoutSession {
 
   total_kobo: number;
 
+  shipping_kobo?: number;
+
+  gift_card_id?: string | null;
+
+  gift_card_applied_kobo?: number;
+
   status: string;
 
 }
@@ -934,6 +940,27 @@ export async function updateCheckoutSession(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(input),
+    },
+  );
+
+  const result = await parseJson<CheckoutSessionResponse>(response);
+  return result.data;
+}
+
+export async function applyGiftCardToCheckout(
+  sessionId: string,
+  tenantId: string,
+  code: string,
+): Promise<CheckoutSession> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/checkout/sessions/${encodeURIComponent(sessionId)}/gift-card`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ code }),
     },
   );
 

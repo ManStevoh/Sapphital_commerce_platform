@@ -19,6 +19,8 @@ return [
         Modules\Commerce\Catalog\Models\ProductDigitalAsset::class,
         Modules\Commerce\Cart\Models\Cart::class,
         Modules\Commerce\Checkout\Models\CheckoutSession::class,
+        Modules\Commerce\Checkout\Models\GiftCard::class,
+        Modules\Commerce\Checkout\Models\GiftCardTransaction::class,
         Modules\Commerce\Orders\Models\Order::class,
         Modules\Commerce\Orders\Models\ReturnRequest::class,
         Modules\Commerce\Shipping\Models\ShippingZone::class,

@@ -18,6 +18,9 @@ use Modules\Commerce\Catalog\Models\ProductSearchSynonym;
 use Modules\Commerce\Catalog\Enums\CollectionStatus;
 use Modules\Commerce\Catalog\Enums\CollectionType;
 use Modules\Commerce\Checkout\Models\CheckoutSession;
+use Modules\Commerce\Checkout\Models\GiftCard;
+use Modules\Commerce\Checkout\Models\GiftCardTransaction;
+use Modules\Commerce\Checkout\Enums\GiftCardStatus;
 use Modules\Commerce\Orders\Models\Order;
 use Modules\Commerce\Orders\Models\OrderItem;
 use Modules\Commerce\Orders\Models\ReturnRequest;
@@ -91,6 +94,16 @@ final class IsolationRecordFactory
                 'currency' => 'NGN',
             ]),
             CheckoutSession::class => $this->createCheckoutSession($tenantId),
+            GiftCard::class => GiftCard::query()->create([
+                'tenant_id' => $tenantId,
+                'code' => 'GC-ISO-'.Str::upper(Str::random(4)),
+                'initial_balance_kobo' => 500_000,
+                'balance_kobo' => 500_000,
+                'currency' => 'NGN',
+                'status' => GiftCardStatus::Active,
+                'expires_at' => now()->addYear(),
+            ]),
+            GiftCardTransaction::class => $this->createGiftCardTransaction($tenantId),
             Order::class => $this->createOrder($tenantId),
             ShippingZone::class => ShippingZone::query()->create([
                 'tenant_id' => $tenantId,
@@ -191,6 +204,18 @@ final class IsolationRecordFactory
             'cart_id' => $cart->id,
             'status' => CheckoutSession::STATUS_PENDING,
             'total_kobo' => 100_000,
+        ]);
+    }
+
+    private function createGiftCardTransaction(string $tenantId): GiftCardTransaction
+    {
+        $card = $this->create(GiftCard::class, $tenantId);
+
+        return GiftCardTransaction::query()->create([
+            'tenant_id' => $tenantId,
+            'gift_card_id' => $card->id,
+            'delta_kobo' => 500_000,
+            'type' => GiftCardTransaction::TYPE_ISSUE,
         ]);
     }
 

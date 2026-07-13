@@ -39,6 +39,10 @@ final class PaymentOrchestrator
             ]);
         }
 
+        if ((int) $session->total_kobo === 0 && (int) ($session->gift_card_applied_kobo ?? 0) > 0) {
+            return $this->initializeGiftCardOnlyCheckout($session);
+        }
+
         $reference = 'scp_'.$session->id.'_'.Str::lower(Str::random(8));
         $resolvedProvider = $provider ?? $this->tenantPaymentProvider->forTenant($tenantId);
         $gateway = $this->gatewayResolver->resolveForTenant($tenantId, $resolvedProvider);
@@ -102,6 +106,17 @@ final class PaymentOrchestrator
             ->where('paystack_reference', $reference)
             ->firstOrFail();
 
+        if ($session->status === CheckoutSession::STATUS_COMPLETED && str_starts_with($reference, 'gc_')) {
+            $orderId = $session->order?->id;
+
+            return [
+                'status' => CheckoutSession::STATUS_COMPLETED,
+                'reference' => $reference,
+                'checkout_session_id' => $session->id,
+                ...($orderId !== null ? ['order_id' => (string) $orderId] : []),
+            ];
+        }
+
         if ($webhookAmountKobo !== null && $webhookAmountKobo !== $session->total_kobo) {
             throw ValidationException::withMessages([
                 'reference' => ['Webhook payment amount does not match checkout total.'],
@@ -155,6 +170,24 @@ final class PaymentOrchestrator
         }
 
         return $result;
+    }
+
+    /**
+     * @return array{authorization_url: string, reference: string}
+     */
+    private function initializeGiftCardOnlyCheckout(CheckoutSession $session): array
+    {
+        $reference = 'gc_'.$session->id.'_'.Str::lower(Str::random(8));
+        $session->update([
+            'paystack_reference' => $reference,
+        ]);
+
+        $this->completeCheckout($session->fresh(), $reference);
+
+        return [
+            'authorization_url' => '/checkout/success?reference='.urlencode($reference),
+            'reference' => $reference,
+        ];
     }
 
     private function completeCheckout(CheckoutSession $session, string $reference): ?string

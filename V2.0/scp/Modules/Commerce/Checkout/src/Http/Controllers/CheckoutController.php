@@ -96,6 +96,8 @@ final class CheckoutController
             'session_id' => $session->id,
             'total_kobo' => $session->total_kobo,
             'shipping_kobo' => $session->shipping_kobo,
+            'gift_card_id' => $session->gift_card_id,
+            'gift_card_applied_kobo' => $session->gift_card_applied_kobo,
             'status' => $session->status,
             'customer_email' => $session->customer_email,
             'customer_phone' => $session->customer_phone,

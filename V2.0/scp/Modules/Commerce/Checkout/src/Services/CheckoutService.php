@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Modules\Commerce\Cart\Models\Cart;
 use Modules\Commerce\Checkout\Models\CheckoutSession;
+use Modules\Commerce\Checkout\Models\GiftCard;
 use Modules\Commerce\Shipping\Models\ShippingRate;
 
 final class CheckoutService
@@ -85,13 +86,32 @@ final class CheckoutService
             $shippingKobo = max(0, (int) $rate->price_kobo);
         }
 
+        $baseTotal = $subtotalKobo + $shippingKobo;
+        $giftCardId = $session->gift_card_id;
+        $giftApplied = 0;
+
+        if (is_string($giftCardId) && $giftCardId !== '') {
+            $card = GiftCard::query()
+                ->where('tenant_id', $tenantId)
+                ->whereKey($giftCardId)
+                ->first();
+
+            if ($card !== null && $card->isRedeemable()) {
+                $giftApplied = min($card->balance_kobo, $baseTotal);
+            } else {
+                $giftCardId = null;
+            }
+        }
+
         $session->update([
             'customer_email' => $input['customer_email'] ?? $session->customer_email,
             'customer_phone' => $input['customer_phone'] ?? $session->customer_phone,
             'shipping_address' => $input['shipping_address'] ?? $session->shipping_address,
             'shipping_rate_id' => is_string($shippingRateId) && $shippingRateId !== '' ? $shippingRateId : null,
             'shipping_kobo' => $shippingKobo,
-            'total_kobo' => $subtotalKobo + $shippingKobo,
+            'gift_card_id' => $giftCardId,
+            'gift_card_applied_kobo' => $giftApplied,
+            'total_kobo' => $baseTotal - $giftApplied,
         ]);
 
         return $session->fresh();

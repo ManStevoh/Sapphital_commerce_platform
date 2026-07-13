@@ -11,6 +11,7 @@ import {
   getCart,
   getShippingRates,
   initializePayment,
+  applyGiftCardToCheckout,
   updateCheckoutSession,
   type Cart,
   type CheckoutSession,
@@ -42,6 +43,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [paymentProvider, setPaymentProvider] = useState<'paystack' | 'flutterwave'>('paystack');
+  const [giftCardCode, setGiftCardCode] = useState('');
+  const [giftCardWorking, setGiftCardWorking] = useState(false);
 
   const paymentProviderLabel = paymentProvider === 'flutterwave' ? 'Flutterwave' : 'Paystack';
 
@@ -160,6 +163,31 @@ export default function CheckoutPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save shipping details.');
       setStep('shipping');
+    }
+  }
+
+  async function handleApplyGiftCard(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!checkoutSession || !tenantId || !giftCardCode.trim()) {
+      return;
+    }
+
+    setGiftCardWorking(true);
+    setError(null);
+
+    try {
+      const updated = await applyGiftCardToCheckout(
+        checkoutSession.session_id,
+        tenantId,
+        giftCardCode.trim(),
+      );
+      setCheckoutSession(updated);
+      setGiftCardCode('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to apply gift card.');
+    } finally {
+      setGiftCardWorking(false);
     }
   }
 
@@ -307,12 +335,31 @@ export default function CheckoutPage() {
                   {line1}, {city}, {state}
                   {lga ? ` (${lga})` : ''}
                 </p>
+                {(checkoutSession?.gift_card_applied_kobo ?? 0) > 0 && (
+                  <p style={{ color: 'var(--color-text-secondary)' }}>
+                    Gift card applied: −{formatNgn(checkoutSession?.gift_card_applied_kobo ?? 0)}
+                  </p>
+                )}
+                <form onSubmit={handleApplyGiftCard} style={{ marginBottom: 16 }}>
+                  <Input
+                    label="Gift card code"
+                    value={giftCardCode}
+                    onChange={(e) => setGiftCardCode(e.target.value)}
+                    placeholder="GC-XXXX-XXXX"
+                    autoComplete="off"
+                  />
+                  <Button type="submit" variant="secondary" disabled={giftCardWorking || step !== 'review'}>
+                    {giftCardWorking ? 'Applying…' : 'Apply gift card'}
+                  </Button>
+                </form>
                 <form onSubmit={handlePay}>
                   {error && <Alert>{error}</Alert>}
                   <Button type="submit" disabled={step === 'paying' || step === 'redirect'}>
                     {step === 'paying' || step === 'redirect'
                       ? `Redirecting to ${paymentProviderLabel}…`
-                      : `Pay ${formatNgn(checkoutTotalKobo)} with ${paymentProviderLabel}`}
+                      : checkoutTotalKobo === 0
+                        ? 'Complete order'
+                        : `Pay ${formatNgn(checkoutTotalKobo)} with ${paymentProviderLabel}`}
                   </Button>
                 </form>
                 {payment && step === 'redirect' && (

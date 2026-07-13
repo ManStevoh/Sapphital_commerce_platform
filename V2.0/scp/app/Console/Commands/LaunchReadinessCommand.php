@@ -149,6 +149,7 @@ final class LaunchReadinessCommand extends Command
             'scp:alert-dispute-deadlines',
             'cms:process-scheduled-content',
             'catalog:process-scheduled-collections',
+            'checkout:expire-gift-cards',
         ];
 
         $consoleRoutes = (string) file_get_contents(base_path('routes/console.php'));

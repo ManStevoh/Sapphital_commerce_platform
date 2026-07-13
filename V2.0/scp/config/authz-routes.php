@@ -85,6 +85,10 @@ return [
     'checkout.health.show' => ['method' => 'GET', 'uri' => '/api/v1/commerce/checkout/health', 'archetype' => 'public'],
     'checkout.sessions.store' => ['method' => 'POST', 'uri' => '/api/v1/commerce/checkout/sessions', 'archetype' => 'tenant'],
     'checkout.sessions.update' => ['method' => 'PATCH', 'uri' => '/api/v1/commerce/checkout/sessions/00000000-0000-4000-8000-000000000001', 'archetype' => 'tenant'],
+    'checkout.sessions.gift-card.apply' => ['method' => 'POST', 'uri' => '/api/v1/commerce/checkout/sessions/00000000-0000-4000-8000-000000000001/gift-card', 'archetype' => 'tenant'],
+    'gift-cards.store' => ['method' => 'POST', 'uri' => '/api/v1/commerce/gift-cards', 'archetype' => 'merchant'],
+    'gift-cards.show-by-code' => ['method' => 'GET', 'uri' => '/api/v1/commerce/gift-cards/by-code/GC-TEST-CODE', 'archetype' => 'merchant'],
+    'gift-cards.disable' => ['method' => 'POST', 'uri' => '/api/v1/commerce/gift-cards/00000000-0000-4000-8000-000000000001/disable', 'archetype' => 'merchant'],
 
     'orders.health.show' => ['method' => 'GET', 'uri' => '/api/v1/commerce/orders/health', 'archetype' => 'public'],
     'orders.show' => ['method' => 'GET', 'uri' => '/api/v1/commerce/orders/00000000-0000-4000-8000-000000000001', 'archetype' => 'tenant'],

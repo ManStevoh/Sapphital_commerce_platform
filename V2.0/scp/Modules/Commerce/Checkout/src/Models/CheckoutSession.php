@@ -39,6 +39,8 @@ final class CheckoutSession extends Model
         'shipping_address',
         'shipping_rate_id',
         'shipping_kobo',
+        'gift_card_id',
+        'gift_card_applied_kobo',
         'paystack_reference',
     ];
 
@@ -52,6 +54,8 @@ final class CheckoutSession extends Model
             'cart_id' => 'string',
             'total_kobo' => 'integer',
             'shipping_kobo' => 'integer',
+            'gift_card_id' => 'string',
+            'gift_card_applied_kobo' => 'integer',
             'shipping_address' => 'array',
             'shipping_rate_id' => 'string',
         ];
