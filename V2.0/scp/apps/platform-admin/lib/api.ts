@@ -3,6 +3,21 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 export interface LoginResponse {
   token: string;
   token_type: string;
+  mfa_required?: boolean;
+  mfa_enrollment_required?: boolean;
+}
+
+export interface MfaSetupResponse {
+  data: {
+    secret: string;
+    otpauth_uri: string;
+  };
+}
+
+export interface MfaConfirmResponse {
+  backup_codes: string[];
+  token: string;
+  token_type: string;
 }
 
 export interface Tenant {
@@ -56,11 +71,60 @@ export function clearToken(): void {
 export async function platformLogin(
   email: string,
   password: string,
+  turnstileToken?: string,
 ): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/api/v1/auth/platform/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+      ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
+    }),
+  });
+
+  return parseJson<LoginResponse>(response);
+}
+
+export async function platformMfaSetup(pendingToken: string): Promise<MfaSetupResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/platform/mfa/setup`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${pendingToken}`,
+    },
+  });
+
+  return parseJson<MfaSetupResponse>(response);
+}
+
+export async function platformMfaConfirm(
+  pendingToken: string,
+  secret: string,
+  code: string,
+): Promise<MfaConfirmResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/platform/mfa/confirm`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${pendingToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ secret, code }),
+  });
+
+  return parseJson<MfaConfirmResponse>(response);
+}
+
+export async function platformMfaVerify(pendingToken: string, code: string): Promise<LoginResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/platform/mfa/verify`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${pendingToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ code }),
   });
 
   return parseJson<LoginResponse>(response);

@@ -71,6 +71,22 @@ export interface OrderResponse {
   data: Order;
 }
 
+export interface RefundResult {
+  id: string;
+  order_id: string;
+  amount_kobo: number;
+  currency: string;
+  status: string;
+  gateway_refund_reference: string | null;
+}
+
+export interface RefundOrderResponse {
+  data: {
+    refund: RefundResult;
+    order: Order;
+  };
+}
+
 export interface ShipmentLine {
   id: string;
   order_item_id: string;
@@ -99,6 +115,170 @@ export interface ShipmentListResponse {
 
 export interface ShipmentResponse {
   data: Shipment;
+}
+
+export interface ReturnLine {
+  id: string;
+  order_item_id: string;
+  quantity: number;
+  restock: boolean;
+}
+
+export interface ReturnRequest {
+  id: string;
+  tenant_id: string;
+  order_id: string;
+  status: string;
+  reason: string;
+  notes: string | null;
+  rejection_reason: string | null;
+  requested_at: string | null;
+  resolved_at: string | null;
+  lines: ReturnLine[];
+}
+
+export interface ReturnRequestListResponse {
+  data: ReturnRequest[];
+}
+
+export interface ReturnRequestResponse {
+  data: ReturnRequest;
+}
+
+export interface Dispute {
+  id: string;
+  tenant_id: string;
+  order_id: string;
+  type: string;
+  provider: string;
+  status: string;
+  provider_case_id: string;
+  amount_kobo: number;
+  currency: string;
+  paystack_reference: string;
+  due_at: string | null;
+  resolved_at: string | null;
+  created_at: string | null;
+}
+
+export interface DisputeListResponse {
+  data: Dispute[];
+}
+
+export interface DisputeResponse {
+  data: Dispute;
+}
+
+export interface PaymentReconciliationEntry {
+  type: 'charge' | 'refund';
+  occurred_at: string;
+  order_id: string;
+  order_number: string | null;
+  reference: string;
+  amount_kobo: number;
+  currency: string;
+  status: string;
+}
+
+export interface PaymentReconciliationReport {
+  period: {
+    from: string;
+    to: string;
+  };
+  summary: {
+    charge_count: number;
+    refund_count: number;
+    total_charges_kobo: number;
+    total_refunds_kobo: number;
+    net_kobo: number;
+    currency: string;
+  };
+  entries: PaymentReconciliationEntry[];
+}
+
+export interface PaymentReconciliationResponse {
+  data: PaymentReconciliationReport;
+}
+
+export interface StoreSettings {
+  return_window_days: number;
+  currency: string;
+  timezone: string;
+  payment_provider: 'paystack' | 'flutterwave';
+}
+
+export interface StoreSettingsResponse {
+  data: StoreSettings;
+}
+
+export interface BillingPlan {
+  id: string;
+  slug: string;
+  name: string;
+  price_ngn: number;
+  product_limit: number;
+  staff_limit: number;
+  custom_domain: boolean;
+}
+
+export interface BillingSubscription {
+  id: string;
+  tenant_id: string;
+  plan_id: string;
+  status: string;
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  plan: BillingPlan | null;
+}
+
+export interface BillingSubscriptionResponse {
+  data: BillingSubscription;
+}
+
+export interface BillingInvoice {
+  id: string;
+  number: string;
+  status: string;
+  currency: string;
+  subtotal: number;
+  tax: number;
+  total: number;
+  period_start: string | null;
+  period_end: string | null;
+  created_at: string | null;
+}
+
+export interface BillingInvoiceListResponse {
+  data: BillingInvoice[];
+}
+
+export interface BillingSettings {
+  vat_registered: boolean;
+  currency: string;
+}
+
+export interface BillingSettingsResponse {
+  data: BillingSettings;
+}
+
+export interface BillingPaymentInitResponse {
+  data: {
+    authorization_url: string;
+    reference: string;
+  };
+}
+
+export interface BillingActivateResponse {
+  data: {
+    subscription: BillingSubscription;
+    invoice: {
+      id: string;
+      number: string;
+      status: string;
+      total: number;
+      currency: string;
+    } | null;
+  };
 }
 
 const TOKEN_KEY = 'scp_admin_token';
@@ -156,14 +336,33 @@ export function formatNgn(kobo: number): string {
 export async function merchantLogin(
   email: string,
   password: string,
+  turnstileToken?: string,
 ): Promise<LoginResponse> {
   const response = await fetch(`${API_URL}/api/v1/auth/merchant/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({
+      email,
+      password,
+      ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
+    }),
   });
 
   return parseJson<LoginResponse>(response);
+}
+
+export interface MerchantHandoffResponse extends LoginResponse {
+  tenant_id: string;
+}
+
+export async function exchangeMerchantHandoff(handoffToken: string): Promise<MerchantHandoffResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/merchant/handoff`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({ handoff_token: handoffToken }),
+  });
+
+  return parseJson<MerchantHandoffResponse>(response);
 }
 
 export async function fetchMe(token: string): Promise<MeResponse> {
@@ -280,6 +479,28 @@ export async function listOrders(tenantId: string): Promise<Order[]> {
   return result.data;
 }
 
+export async function refundOrder(
+  tenantId: string,
+  orderId: string,
+  input?: { amount_kobo?: number; reason?: string },
+): Promise<{ refund: RefundResult; order: Order }> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/orders/${encodeURIComponent(orderId)}/refund`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify(input ?? {}),
+    },
+  );
+
+  const result = await parseJson<RefundOrderResponse>(response);
+  return result.data;
+}
+
 export async function getOrder(tenantId: string, orderId: string): Promise<Order> {
   const response = await fetch(
     `${API_URL}/api/v1/commerce/orders/${encodeURIComponent(orderId)}`,
@@ -359,6 +580,398 @@ export async function markShipmentDelivered(
   );
 
   const result = await parseJson<ShipmentResponse>(response);
+  return result.data;
+}
+
+export async function listReturnRequests(tenantId: string): Promise<ReturnRequest[]> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/returns`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<ReturnRequestListResponse>(response);
+  return result.data;
+}
+
+export async function approveReturnRequest(
+  tenantId: string,
+  returnId: string,
+  issueRefund = false,
+): Promise<ReturnRequest> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/returns/${encodeURIComponent(returnId)}/approve`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ issue_refund: issueRefund }),
+    },
+  );
+
+  const result = await parseJson<ReturnRequestResponse>(response);
+  return result.data;
+}
+
+export async function shipReturnRequest(
+  tenantId: string,
+  returnId: string,
+): Promise<ReturnRequest> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/returns/${encodeURIComponent(returnId)}/ship`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+
+  const result = await parseJson<ReturnRequestResponse>(response);
+  return result.data;
+}
+
+export async function receiveReturnRequest(
+  tenantId: string,
+  returnId: string,
+): Promise<ReturnRequest> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/returns/${encodeURIComponent(returnId)}/receive`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+    },
+  );
+
+  const result = await parseJson<ReturnRequestResponse>(response);
+  return result.data;
+}
+
+export async function rejectReturnRequest(
+  tenantId: string,
+  returnId: string,
+  rejectionReason: string,
+): Promise<ReturnRequest> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/returns/${encodeURIComponent(returnId)}/reject`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ rejection_reason: rejectionReason }),
+    },
+  );
+
+  const result = await parseJson<ReturnRequestResponse>(response);
+  return result.data;
+}
+
+export async function listDisputes(tenantId: string): Promise<Dispute[]> {
+  const response = await fetch(`${API_URL}/api/v1/platform/financial-services/disputes`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<DisputeListResponse>(response);
+  return result.data;
+}
+
+export async function resolveDispute(
+  tenantId: string,
+  disputeId: string,
+  status: 'won' | 'lost' | 'withdrawn',
+): Promise<Dispute> {
+  const response = await fetch(
+    `${API_URL}/api/v1/platform/financial-services/disputes/${encodeURIComponent(disputeId)}/resolve`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    },
+  );
+
+  const result = await parseJson<DisputeResponse>(response);
+  return result.data;
+}
+
+export async function fetchPaymentReconciliation(
+  tenantId: string,
+  from: string,
+  to: string,
+): Promise<PaymentReconciliationReport> {
+  const params = new URLSearchParams({ from, to });
+  const response = await fetch(
+    `${API_URL}/api/v1/platform/financial-services/reconciliation?${params.toString()}`,
+    {
+      headers: tenantHeaders(tenantId),
+    },
+  );
+
+  const result = await parseJson<PaymentReconciliationResponse>(response);
+  return result.data;
+}
+
+export async function downloadPaymentReconciliationCsv(
+  tenantId: string,
+  from: string,
+  to: string,
+): Promise<void> {
+  const params = new URLSearchParams({ from, to });
+  const response = await fetch(
+    `${API_URL}/api/v1/platform/financial-services/reconciliation/export?${params.toString()}`,
+    {
+      headers: tenantHeaders(tenantId),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || 'Failed to export reconciliation report.');
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `payments-reconciliation-${from}-to-${to}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+export async function fetchStoreSettings(tenantId: string): Promise<StoreSettings> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/storefront/settings`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<StoreSettingsResponse>(response);
+  return result.data;
+}
+
+export async function updateReturnWindowDays(
+  tenantId: string,
+  returnWindowDays: number,
+): Promise<StoreSettings> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/storefront/settings/returns`, {
+    method: 'PUT',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ return_window_days: returnWindowDays }),
+  });
+
+  const result = await parseJson<StoreSettingsResponse>(response);
+  return result.data;
+}
+
+export interface PaymentProviderSettings {
+  payment_provider: 'paystack' | 'flutterwave';
+  currency: string;
+}
+
+export interface PaymentProviderSettingsResponse {
+  data: PaymentProviderSettings;
+}
+
+export async function fetchPaymentProviderSettings(
+  tenantId: string,
+): Promise<PaymentProviderSettings> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/storefront/settings/payments`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<PaymentProviderSettingsResponse>(response);
+  return result.data;
+}
+
+export async function updatePaymentProvider(
+  tenantId: string,
+  paymentProvider: 'paystack' | 'flutterwave',
+): Promise<PaymentProviderSettings> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/storefront/settings/payments`, {
+    method: 'PUT',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ payment_provider: paymentProvider }),
+  });
+
+  const result = await parseJson<PaymentProviderSettingsResponse>(response);
+  return result.data;
+}
+
+export interface PaymentProviderCredentialStatus {
+  configured: boolean;
+  masked_secret_key: string | null;
+  uses_platform_key: boolean;
+  webhook_hash_configured?: boolean;
+}
+
+export interface PaymentCredentialsStatus {
+  paystack: PaymentProviderCredentialStatus;
+  flutterwave: PaymentProviderCredentialStatus & { webhook_hash_configured: boolean };
+}
+
+export interface PaymentCredentialsStatusResponse {
+  data: PaymentCredentialsStatus;
+}
+
+export async function fetchPaymentCredentials(
+  tenantId: string,
+): Promise<PaymentCredentialsStatus> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/storefront/settings/payments/credentials`,
+    {
+      headers: tenantHeaders(tenantId),
+    },
+  );
+
+  const result = await parseJson<PaymentCredentialsStatusResponse>(response);
+  return result.data;
+}
+
+export async function updatePaymentCredentials(
+  tenantId: string,
+  payload: {
+    provider: 'paystack' | 'flutterwave';
+    secret_key?: string;
+    secret_hash?: string;
+  },
+): Promise<PaymentCredentialsStatus> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/storefront/settings/payments/credentials`,
+    {
+      method: 'PUT',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  const result = await parseJson<PaymentCredentialsStatusResponse>(response);
+  return result.data;
+}
+
+export async function fetchBillingSubscription(tenantId: string): Promise<BillingSubscription> {
+  const response = await fetch(`${API_URL}/api/v1/platform/billing/subscription`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<BillingSubscriptionResponse>(response);
+  return result.data;
+}
+
+export async function fetchBillingSettings(tenantId: string): Promise<BillingSettings> {
+  const response = await fetch(`${API_URL}/api/v1/platform/billing/settings`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<BillingSettingsResponse>(response);
+  return result.data;
+}
+
+export async function updateBillingSettings(
+  tenantId: string,
+  payload: Pick<BillingSettings, 'vat_registered'>,
+): Promise<BillingSettings> {
+  const response = await fetch(`${API_URL}/api/v1/platform/billing/settings`, {
+    method: 'PUT',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await parseJson<BillingSettingsResponse>(response);
+  return result.data;
+}
+
+export async function listBillingInvoices(tenantId: string): Promise<BillingInvoice[]> {
+  const response = await fetch(`${API_URL}/api/v1/platform/billing/invoices`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<BillingInvoiceListResponse>(response);
+  return result.data;
+}
+
+export async function downloadBillingInvoicePdf(tenantId: string, invoiceId: string): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/v1/platform/billing/invoices/${encodeURIComponent(invoiceId)}/pdf`,
+    {
+      headers: tenantHeaders(tenantId),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to download invoice PDF.');
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `invoice-${invoiceId}.pdf`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export async function initializeBillingPayment(
+  tenantId: string,
+  email: string,
+): Promise<{ authorization_url: string; reference: string }> {
+  const response = await fetch(
+    `${API_URL}/api/v1/platform/billing/subscriptions/${encodeURIComponent(tenantId)}/initialize-payment`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+        'Idempotency-Key': crypto.randomUUID(),
+      },
+      body: JSON.stringify({ email }),
+    },
+  );
+
+  const result = await parseJson<BillingPaymentInitResponse>(response);
+  return result.data;
+}
+
+export async function activateBillingSubscription(
+  tenantId: string,
+  paystackReference?: string,
+): Promise<BillingActivateResponse['data']> {
+  const response = await fetch(
+    `${API_URL}/api/v1/platform/billing/subscriptions/${encodeURIComponent(tenantId)}/activate`,
+    {
+      method: 'POST',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        paystack_reference: paystackReference ?? null,
+      }),
+    },
+  );
+
+  const result = await parseJson<BillingActivateResponse>(response);
   return result.data;
 }
 

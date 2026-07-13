@@ -7,6 +7,7 @@ export interface SignupPayload {
   password: string;
   store_name: string;
   plan_slug: PlanSlug;
+  'cf-turnstile-response'?: string;
 }
 
 export interface SignupResponse {
@@ -14,6 +15,8 @@ export interface SignupResponse {
   provisioning_run_id: string;
   status: string;
   poll_url: string;
+  admin_handoff_token: string;
+  email: string;
 }
 
 export interface ProvisioningStatus {

@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { fetchOrder, formatNgn, resolveClientTenantId, verifyPayment } from '@/lib/api';
+import { fetchOrder, formatNgn, verifyPayment } from '@/lib/api';
+import { resolveClientTenantId } from '@/lib/tenant-client';
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();

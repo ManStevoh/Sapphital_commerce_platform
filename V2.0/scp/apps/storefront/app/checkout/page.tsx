@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Alert, Button, Card, Input } from '@sapphital/scp-ui';
+import { Alert, Button, Card, Input, TurnstileWidget, turnstileSiteKey } from '@sapphital/scp-ui';
 import { CartSummary } from '@/components/CartSummary';
 import {
   createCheckout,
+  fetchCheckoutSettings,
   formatNgn,
   getCart,
   getShippingRates,
@@ -19,6 +20,8 @@ import {
 import { isValidNgPhone, NIGERIA_STATES, normalizeNgPhone } from '@/lib/nigeria-states';
 import { getSessionId } from '@/lib/session';
 import { resolveClientTenantId } from '@/lib/tenant-client';
+
+const TURNSTILE_SITE_KEY = turnstileSiteKey();
 
 type Step = 'loading' | 'contact' | 'shipping' | 'review' | 'paying' | 'redirect' | 'error';
 
@@ -37,6 +40,10 @@ export default function CheckoutPage() {
   const [tenantId, setTenantId] = useState<string | null>(null);
   const [payment, setPayment] = useState<PaymentInitialization | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [paymentProvider, setPaymentProvider] = useState<'paystack' | 'flutterwave'>('paystack');
+
+  const paymentProviderLabel = paymentProvider === 'flutterwave' ? 'Flutterwave' : 'Paystack';
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +66,14 @@ export default function CheckoutPage() {
 
         setTenantId(resolvedTenantId);
         setCart(cartData);
+
+        const checkoutSettings = await fetchCheckoutSettings(resolvedTenantId);
+
+        if (cancelled) {
+          return;
+        }
+
+        setPaymentProvider(checkoutSettings.payment_provider);
 
         const rates = await getShippingRates(cartData.total_kobo, resolvedTenantId);
 
@@ -113,6 +128,11 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setError('Complete the security check before continuing.');
+      return;
+    }
+
     setError(null);
     setStep('review');
 
@@ -120,7 +140,7 @@ export default function CheckoutPage() {
       let session = checkoutSession;
 
       if (!session) {
-        session = await createCheckout(cart.id, tenantId);
+        session = await createCheckout(cart.id, tenantId, undefined, turnstileToken ?? undefined);
         setCheckoutSession(session);
       }
 
@@ -177,7 +197,7 @@ export default function CheckoutPage() {
         </p>
         <h1 style={{ margin: 0 }}>Checkout</h1>
         <p style={{ color: 'var(--color-text-secondary)' }}>
-          Contact → Shipping → Review → Pay with Paystack
+          Contact → Shipping → Review → Pay with {paymentProviderLabel}
         </p>
       </header>
 
@@ -262,6 +282,11 @@ export default function CheckoutPage() {
                     </select>
                   </label>
                   <Input label="LGA (optional)" value={lga} onChange={(e) => setLga(e.target.value)} />
+                  {TURNSTILE_SITE_KEY && (
+                    <div style={{ marginBottom: 16 }}>
+                      <TurnstileWidget siteKey={TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
+                    </div>
+                  )}
                   {error && <Alert>{error}</Alert>}
                   <div style={{ display: 'flex', gap: 8 }}>
                     <Button type="button" variant="secondary" onClick={() => setStep('contact')}>
@@ -286,14 +311,14 @@ export default function CheckoutPage() {
                   {error && <Alert>{error}</Alert>}
                   <Button type="submit" disabled={step === 'paying' || step === 'redirect'}>
                     {step === 'paying' || step === 'redirect'
-                      ? 'Redirecting to Paystack…'
-                      : `Pay ${formatNgn(checkoutTotalKobo)} with Paystack`}
+                      ? `Redirecting to ${paymentProviderLabel}…`
+                      : `Pay ${formatNgn(checkoutTotalKobo)} with ${paymentProviderLabel}`}
                   </Button>
                 </form>
                 {payment && step === 'redirect' && (
                   <p style={{ marginTop: 12 }}>
                     If you are not redirected,{' '}
-                    <a href={payment.authorization_url}>continue to Paystack</a>.
+                    <a href={payment.authorization_url}>continue to {paymentProviderLabel}</a>.
                   </p>
                 )}
               </Card>

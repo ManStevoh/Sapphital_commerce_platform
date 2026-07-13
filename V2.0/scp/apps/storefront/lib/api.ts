@@ -260,6 +260,21 @@ async function parseJson<T>(response: Response): Promise<T> {
 
 
 
+function newIdempotencyKey(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `idemp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function moneyHeaders(tenantId: string, idempotencyKey?: string): HeadersInit {
+  return {
+    ...tenantHeaders(tenantId),
+    'Idempotency-Key': idempotencyKey ?? newIdempotencyKey(),
+  };
+}
+
 function tenantHeaders(tenantId: string, sessionId?: string): HeadersInit {
 
   const headers: Record<string, string> = {
@@ -507,27 +522,21 @@ export async function addToCart(
 
 
 export async function createCheckout(
-
   cartId: string,
-
   tenantId: string,
-
+  idempotencyKey?: string,
+  turnstileToken?: string,
 ): Promise<CheckoutSession> {
-
   const response = await fetch(`${API_URL}/api/v1/commerce/checkout/sessions`, {
-
     method: 'POST',
-
     headers: {
-
-      ...tenantHeaders(tenantId),
-
+      ...moneyHeaders(tenantId, idempotencyKey),
       'Content-Type': 'application/json',
-
     },
-
-    body: JSON.stringify({ cart_id: cartId }),
-
+    body: JSON.stringify({
+      cart_id: cartId,
+      ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
+    }),
   });
 
 
@@ -540,42 +549,44 @@ export async function createCheckout(
 
 
 
+export interface CheckoutSettings {
+  payment_provider: 'paystack' | 'flutterwave';
+  currency: string;
+}
+
+export interface CheckoutSettingsResponse {
+  data: CheckoutSettings;
+}
+
+export async function fetchCheckoutSettings(tenantId: string): Promise<CheckoutSettings> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/storefront/checkout-settings`, {
+    headers: tenantHeaders(tenantId),
+    cache: 'no-store',
+  });
+
+  const result = await parseJson<CheckoutSettingsResponse>(response);
+  return result.data;
+}
+
 export async function initializePayment(
-
   checkoutSessionId: string,
-
   email: string,
-
   tenantId: string,
-
+  idempotencyKey?: string,
 ): Promise<PaymentInitialization> {
-
   const response = await fetch(
-
     `${API_URL}/api/v1/platform/financial-services/payments/initialize`,
-
     {
-
       method: 'POST',
-
       headers: {
-
-        ...tenantHeaders(tenantId),
-
+        ...moneyHeaders(tenantId, idempotencyKey),
         'Content-Type': 'application/json',
-
       },
-
       body: JSON.stringify({
-
         checkout_session_id: checkoutSessionId,
-
         email,
-
       }),
-
     },
-
   );
 
 
@@ -687,13 +698,14 @@ export async function updateCheckoutSession(
 export async function verifyPayment(
   reference: string,
   tenantId: string,
+  idempotencyKey?: string,
 ): Promise<PaymentVerification> {
   const response = await fetch(
     `${API_URL}/api/v1/platform/financial-services/payments/verify`,
     {
       method: 'POST',
       headers: {
-        ...tenantHeaders(tenantId),
+        ...moneyHeaders(tenantId, idempotencyKey),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ reference }),
@@ -717,3 +729,72 @@ export async function fetchOrder(orderId: string, tenantId: string): Promise<Ord
   return result.data;
 }
 
+export interface GuestReturnOrderItem {
+  id: string;
+  product_name: string;
+  quantity: number;
+}
+
+export interface GuestReturnLookup {
+  order_id: string;
+  order_number: string;
+  items: GuestReturnOrderItem[];
+}
+
+export interface GuestReturnLookupResponse {
+  data: GuestReturnLookup;
+}
+
+export interface GuestReturnRequest {
+  id: string;
+  status: string;
+  reason: string;
+}
+
+export interface GuestReturnRequestResponse {
+  data: GuestReturnRequest;
+}
+
+export async function lookupGuestReturnOrder(
+  tenantId: string,
+  orderNumber: string,
+  customerEmail: string,
+): Promise<GuestReturnLookup> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/returns/guest/lookup`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      order_number: orderNumber,
+      customer_email: customerEmail,
+    }),
+  });
+
+  const result = await parseJson<GuestReturnLookupResponse>(response);
+  return result.data;
+}
+
+export async function submitGuestReturnRequest(
+  tenantId: string,
+  input: {
+    order_number: string;
+    customer_email: string;
+    reason: string;
+    notes?: string;
+    lines: Array<{ order_item_id: string; quantity: number }>;
+  },
+): Promise<GuestReturnRequest> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/returns/guest`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+
+  const result = await parseJson<GuestReturnRequestResponse>(response);
+  return result.data;
+}

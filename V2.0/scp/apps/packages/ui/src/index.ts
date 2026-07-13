@@ -6,3 +6,4 @@ export { Alert, type AlertProps } from './Alert';
 export { Table, Th, Td, type TableProps } from './Table';
 export { AdminShell, type AdminShellProps, type AdminNavItem } from './AdminShell';
 export { PlatformShell, type PlatformShellProps, type PlatformNavItem } from './PlatformShell';
+export { TurnstileWidget, turnstileSiteKey, type TurnstileWidgetProps } from './TurnstileWidget';

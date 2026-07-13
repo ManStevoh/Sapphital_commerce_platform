@@ -2,37 +2,42 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import { fetchProducts } from '@/lib/api';
-import { HeroSection } from '@/components/theme/HeroSection';
 import { ProductGridSection } from '@/components/theme/ProductGridSection';
 import { StoreHeader } from '@/components/theme/StoreHeader';
-import { TrustBarSection } from '@/components/theme/TrustBarSection';
 import { loadStorefrontTheme } from '@/lib/theme-loader';
 
-export async function generateMetadata(): Promise<Metadata> {
+interface CollectionPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+function titleFromSlug(slug: string): string {
+  return slug
+    .split('-')
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+export async function generateMetadata({
+  params,
+}: CollectionPageProps): Promise<Metadata> {
+  const { slug } = await params;
   const requestHeaders = await headers();
   const storeName = requestHeaders.get('x-tenant-name') ?? 'Store';
-  const tenantSlug = requestHeaders.get('x-tenant-slug');
-  const baseUrl = tenantSlug
-    ? `https://${tenantSlug}.shops.sapphital.test`
-    : undefined;
 
   return {
-    title: storeName,
-    description: `Shop ${storeName} — powered by SAPPHITAL`,
-    openGraph: {
-      title: storeName,
-      description: `Discover products at ${storeName}`,
-      type: 'website',
-      ...(baseUrl ? { url: baseUrl } : {}),
-    },
+    title: `${titleFromSlug(slug)} — ${storeName}`,
+    description: `Browse ${titleFromSlug(slug)} at ${storeName}`,
   };
 }
 
-export default async function StorefrontPage() {
+export default async function CollectionPage({ params }: CollectionPageProps) {
+  const { slug } = await params;
   const requestHeaders = await headers();
   const tenantSlug = requestHeaders.get('x-tenant-slug');
   const storeName = requestHeaders.get('x-tenant-name') ?? 'Store';
   const themeBundle = await loadStorefrontTheme();
+  const collectionTitle = titleFromSlug(slug);
 
   let products: Awaited<ReturnType<typeof fetchProducts>> = [];
   let error: string | null = null;
@@ -51,15 +56,18 @@ export default async function StorefrontPage() {
         theme={themeBundle?.config ?? null}
       />
 
+      <p>
+        <Link href="/">&larr; Back to shop</Link>
+      </p>
+
+      <h1>{collectionTitle}</h1>
+      <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
+        Theme template: collection
+      </p>
+
       {error && <p style={{ color: 'var(--color-error)' }}>{error}</p>}
 
-      {!error && (
-        <>
-          <HeroSection storeName={storeName} theme={themeBundle?.config ?? null} />
-          <ProductGridSection products={products} />
-          <TrustBarSection />
-        </>
-      )}
+      {!error && <ProductGridSection products={products} />}
     </main>
   );
 }

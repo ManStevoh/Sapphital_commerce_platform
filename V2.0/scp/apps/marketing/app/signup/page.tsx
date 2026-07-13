@@ -3,8 +3,10 @@
 import { FormEvent, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Alert, Button, Card, Input } from '@sapphital/scp-ui';
+import { Alert, Button, Card, Input, TurnstileWidget, turnstileSiteKey } from '@sapphital/scp-ui';
 import { signup, type PlanSlug } from '@/lib/api';
+
+const TURNSTILE_SITE_KEY = turnstileSiteKey();
 
 const PLANS: { slug: PlanSlug; label: string }[] = [
   { slug: 'starter', label: 'Starter' },
@@ -26,10 +28,17 @@ function SignupForm() {
   const [planSlug, setPlanSlug] = useState<PlanSlug>(validInitialPlan);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setError('Complete the security check before continuing.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -38,9 +47,12 @@ function SignupForm() {
         password,
         store_name: storeName,
         plan_slug: planSlug,
+        ...(turnstileToken ? { 'cf-turnstile-response': turnstileToken } : {}),
       });
 
-      router.push(`/signup/success?tenant_id=${encodeURIComponent(result.tenant_id)}`);
+      router.push(
+        `/signup/success?tenant_id=${encodeURIComponent(result.tenant_id)}&handoff=${encodeURIComponent(result.admin_handoff_token)}&email=${encodeURIComponent(result.email)}`,
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Signup failed.');
     } finally {
@@ -63,10 +75,10 @@ function SignupForm() {
           label="Password"
           type="password"
           required
-          minLength={8}
+          minLength={12}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          hint="Minimum 8 characters"
+          hint="Minimum 12 characters"
           autoComplete="new-password"
         />
         <Input
@@ -91,6 +103,12 @@ function SignupForm() {
             </label>
           ))}
         </fieldset>
+
+        {TURNSTILE_SITE_KEY && (
+          <div style={{ marginBottom: 16 }}>
+            <TurnstileWidget siteKey={TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
+          </div>
+        )}
 
         {error && <Alert>{error}</Alert>}
 

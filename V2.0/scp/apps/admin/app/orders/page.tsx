@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AdminShell, Alert, Table, Td, Th } from '@sapphital/scp-ui';
+import { AdminShell, Alert, Button, Card, Table, Td, Th } from '@sapphital/scp-ui';
 import {
   clearAuth,
   formatNgn,
   getStoredTenantId,
   getStoredToken,
   listOrders,
+  refundOrder,
   type Order,
 } from '@/lib/api';
 import { adminNav } from '@/lib/nav';
@@ -18,6 +19,9 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionId, setActionId] = useState<string | null>(null);
+  const [partialAmountById, setPartialAmountById] = useState<Record<string, string>>({});
+  const [reasonById, setReasonById] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const token = getStoredToken();
@@ -38,9 +42,92 @@ export default function OrdersPage() {
       });
   }, [router]);
 
+  async function handleRefund(order: Order, amountKobo?: number) {
+    const tenantId = getStoredTenantId();
+
+    if (!tenantId) {
+      return;
+    }
+
+    setActionId(order.id);
+    setError(null);
+
+    try {
+      const reason = reasonById[order.id]?.trim() || undefined;
+      const result = await refundOrder(tenantId, order.id, {
+        amount_kobo: amountKobo,
+        reason,
+      });
+
+      setOrders((current) =>
+        current.map((item) => (item.id === result.order.id ? result.order : item)),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Refund failed.');
+    } finally {
+      setActionId(null);
+    }
+  }
+
   function handleLogout() {
     clearAuth();
     router.push('/login');
+  }
+
+  function renderRefundActions(order: Order) {
+    if (order.status !== 'paid') {
+      return '—';
+    }
+
+    const busy = actionId === order.id;
+    const partialInput = partialAmountById[order.id] ?? '';
+    const partialKobo = Math.round(Number(partialInput) * 100);
+
+    return (
+      <Card>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <input
+            type="text"
+            placeholder="Reason (optional)"
+            value={reasonById[order.id] ?? ''}
+            onChange={(event) =>
+              setReasonById((current) => ({
+                ...current,
+                [order.id]: event.target.value,
+              }))
+            }
+          />
+          <Button
+            type="button"
+            disabled={busy}
+            onClick={() => handleRefund(order)}
+          >
+            {busy ? 'Processing…' : 'Full refund'}
+          </Button>
+          <input
+            type="number"
+            min={0.01}
+            step={0.01}
+            placeholder="Partial amount (NGN)"
+            value={partialInput}
+            onChange={(event) =>
+              setPartialAmountById((current) => ({
+                ...current,
+                [order.id]: event.target.value,
+              }))
+            }
+          />
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={busy || !partialKobo || partialKobo < 1}
+            onClick={() => handleRefund(order, partialKobo)}
+          >
+            Partial refund
+          </Button>
+        </div>
+      </Card>
+    );
   }
 
   if (loading) {
@@ -73,6 +160,7 @@ export default function OrdersPage() {
               <Th>Items</Th>
               <Th>Customer</Th>
               <Th>Created</Th>
+              <Th>Refund</Th>
             </tr>
           </thead>
           <tbody>
@@ -88,6 +176,7 @@ export default function OrdersPage() {
                     ? new Date(order.created_at).toLocaleString('en-NG')
                     : '—'}
                 </Td>
+                <Td>{renderRefundActions(order)}</Td>
               </tr>
             ))}
           </tbody>
