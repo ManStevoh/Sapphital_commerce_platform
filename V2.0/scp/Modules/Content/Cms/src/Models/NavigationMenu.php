@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Commerce\Catalog\Models;
+namespace Modules\Content\Cms\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Content\Cms\Enums\NavigationLocation;
 use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
-final class Product extends Model
+final class NavigationMenu extends Model
 {
     use BelongsToTenant;
     use HasUuids;
@@ -17,19 +18,15 @@ final class Product extends Model
 
     protected $keyType = 'string';
 
-    protected $table = 'products';
+    protected $table = 'cms_navigation_menus';
 
     /**
      * @var list<string>
      */
     protected $fillable = [
         'tenant_id',
-        'name',
-        'slug',
-        'price_kobo',
-        'status',
-        'inventory_qty',
-        'fulfillment_type',
+        'location',
+        'links',
     ];
 
     /**
@@ -39,8 +36,8 @@ final class Product extends Model
     {
         return [
             'tenant_id' => 'string',
-            'price_kobo' => 'integer',
-            'inventory_qty' => 'integer',
+            'location' => NavigationLocation::class,
+            'links' => 'array',
         ];
     }
 }

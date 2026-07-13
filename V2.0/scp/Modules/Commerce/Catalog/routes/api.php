@@ -23,7 +23,7 @@ Route::middleware('tenant.context')->group(function (): void {
     Route::get('/v1/commerce/catalog/products/{id}', [ProductController::class, 'show'])
         ->name('catalog.products.show');
 
-    Route::middleware(['auth:sanctum', 'merchant.tenant'])->group(function (): void {
+    Route::middleware(['auth:sanctum', 'merchant.tenant', 'permission.check:catalog.write'])->group(function (): void {
         Route::post('/v1/commerce/catalog/products', [ProductController::class, 'store'])
             ->name('catalog.products.store');
 

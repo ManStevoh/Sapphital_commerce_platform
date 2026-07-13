@@ -1,0 +1,5 @@
+{
+    "name": "content-cms",
+    "description": "Tenant-scoped CMS — pages, blog, navigation (Vol 7, ADR-012)",
+    "version": "0.1.0"
+}

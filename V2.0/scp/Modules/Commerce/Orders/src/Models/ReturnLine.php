@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-final class OrderItem extends Model
+final class ReturnLine extends Model
 {
     use HasUuids;
 
@@ -16,20 +16,16 @@ final class OrderItem extends Model
 
     protected $keyType = 'string';
 
-    protected $table = 'order_items';
+    protected $table = 'return_lines';
 
     /**
      * @var list<string>
      */
     protected $fillable = [
-        'order_id',
-        'product_id',
-        'product_name',
-        'fulfillment_type',
+        'return_request_id',
+        'order_item_id',
         'quantity',
-        'unit_price_kobo',
-        'line_total_kobo',
-        'downloaded_at',
+        'restock',
     ];
 
     /**
@@ -38,20 +34,26 @@ final class OrderItem extends Model
     protected function casts(): array
     {
         return [
-            'order_id' => 'string',
-            'product_id' => 'string',
+            'return_request_id' => 'string',
+            'order_item_id' => 'string',
             'quantity' => 'integer',
-            'unit_price_kobo' => 'integer',
-            'line_total_kobo' => 'integer',
-            'downloaded_at' => 'datetime',
+            'restock' => 'boolean',
         ];
     }
 
     /**
-     * @return BelongsTo<Order, $this>
+     * @return BelongsTo<ReturnRequest, $this>
      */
-    public function order(): BelongsTo
+    public function returnRequest(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(ReturnRequest::class);
+    }
+
+    /**
+     * @return BelongsTo<OrderItem, $this>
+     */
+    public function orderItem(): BelongsTo
+    {
+        return $this->belongsTo(OrderItem::class);
     }
 }

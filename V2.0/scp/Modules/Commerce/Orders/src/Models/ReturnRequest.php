@@ -2,33 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Modules\Commerce\Shipping\Models;
+namespace Modules\Commerce\Orders\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Commerce\Orders\Enums\ReturnRequestStatus;
 use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
-final class Shipment extends Model
+final class ReturnRequest extends Model
 {
     use BelongsToTenant;
     use HasUuids;
-
-    public const STATUS_PENDING = 'pending';
-
-    public const STATUS_LABEL_CREATED = 'label_created';
-
-    public const STATUS_IN_TRANSIT = 'in_transit';
-
-    public const STATUS_DELIVERED = 'delivered';
-
-    public const CARRIER_MANUAL = 'manual';
 
     public $incrementing = false;
 
     protected $keyType = 'string';
 
-    protected $table = 'shipments';
+    protected $table = 'return_requests';
 
     /**
      * @var list<string>
@@ -37,12 +29,11 @@ final class Shipment extends Model
         'tenant_id',
         'order_id',
         'status',
-        'carrier',
-        'tracking_number',
-        'tracking_url',
-        'weight_grams',
-        'shipped_at',
-        'delivered_at',
+        'reason',
+        'notes',
+        'rejection_reason',
+        'requested_at',
+        'resolved_at',
     ];
 
     /**
@@ -53,17 +44,25 @@ final class Shipment extends Model
         return [
             'tenant_id' => 'string',
             'order_id' => 'string',
-            'weight_grams' => 'integer',
-            'shipped_at' => 'datetime',
-            'delivered_at' => 'datetime',
+            'status' => ReturnRequestStatus::class,
+            'requested_at' => 'datetime',
+            'resolved_at' => 'datetime',
         ];
     }
 
     /**
-     * @return HasMany<ShipmentLine, $this>
+     * @return BelongsTo<Order, $this>
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * @return HasMany<ReturnLine, $this>
      */
     public function lines(): HasMany
     {
-        return $this->hasMany(ShipmentLine::class);
+        return $this->hasMany(ReturnLine::class);
     }
 }

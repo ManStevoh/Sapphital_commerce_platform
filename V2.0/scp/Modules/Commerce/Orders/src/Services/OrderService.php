@@ -42,11 +42,13 @@ final class OrderService
         $productNames = Product::query()
             ->where('tenant_id', $session->tenant_id)
             ->whereIn('id', $cart->items->pluck('product_id'))
-            ->pluck('name', 'id');
+            ->get(['id', 'name', 'fulfillment_type'])
+            ->keyBy('id');
 
         $subtotalKobo = (int) $cart->items->sum('line_total_kobo');
+        $totalKobo = (int) ($session->total_kobo ?? $subtotalKobo);
 
-        return DB::transaction(function () use ($session, $cart, $productNames, $subtotalKobo): Order {
+        return DB::transaction(function () use ($session, $cart, $productNames, $subtotalKobo, $totalKobo): Order {
             $order = Order::query()->create([
                 'tenant_id' => $session->tenant_id,
                 'checkout_session_id' => $session->id,
@@ -54,16 +56,20 @@ final class OrderService
                 'status' => Order::STATUS_PENDING,
                 'currency' => 'NGN',
                 'subtotal_kobo' => $subtotalKobo,
-                'total_kobo' => $subtotalKobo,
-                'customer_email' => null,
+                'total_kobo' => $totalKobo,
+                'customer_email' => $session->customer_email,
                 'paystack_reference' => null,
             ]);
 
             foreach ($cart->items as $cartItem) {
+                /** @var Product|null $product */
+                $product = $productNames->get($cartItem->product_id);
+
                 OrderItem::query()->create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
-                    'product_name' => (string) ($productNames[$cartItem->product_id] ?? 'Unknown Product'),
+                    'product_name' => (string) ($product?->name ?? 'Unknown Product'),
+                    'fulfillment_type' => (string) ($product?->fulfillment_type ?? 'physical'),
                     'quantity' => $cartItem->quantity,
                     'unit_price_kobo' => $cartItem->unit_price_kobo,
                     'line_total_kobo' => $cartItem->line_total_kobo,
@@ -93,8 +99,24 @@ final class OrderService
         $order = $order->fresh(['items']);
 
         $this->maybeCreateShipmentFromOrder($order);
+        $this->maybeSendOrderConfirmation($order);
 
         return $order;
+    }
+
+    private function maybeSendOrderConfirmation(Order $order): void
+    {
+        $notifierClass = 'Platform\\Notifications\\Services\\OrderConfirmationNotifier';
+
+        if (! class_exists($notifierClass)) {
+            return;
+        }
+
+        try {
+            app($notifierClass)->send($order);
+        } catch (\Throwable) {
+            // Notification failure must not block payment completion.
+        }
     }
 
     private function maybeCreateShipmentFromOrder(Order $order): void

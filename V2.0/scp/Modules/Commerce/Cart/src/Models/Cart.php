@@ -7,9 +7,11 @@ namespace Modules\Commerce\Cart\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
 final class Cart extends Model
 {
+    use BelongsToTenant;
     use HasUuids;
 
     public $incrementing = false;

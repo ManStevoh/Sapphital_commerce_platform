@@ -37,6 +37,7 @@ final class ProductController
                 'price_kobo',
                 'status',
                 'inventory_qty',
+                'fulfillment_type',
             ]);
 
         return response()->json([
@@ -69,6 +70,7 @@ final class ProductController
             'price_kobo' => ['required', 'integer', 'min:0'],
             'status' => ['required', Rule::in(['draft', 'published'])],
             'inventory_qty' => ['required', 'integer', 'min:0'],
+            'fulfillment_type' => ['sometimes', Rule::in(['physical', 'digital'])],
         ]);
 
         $slug = $validated['slug'] ?? Str::slug($validated['name']);
@@ -80,6 +82,7 @@ final class ProductController
             'price_kobo' => $validated['price_kobo'],
             'status' => $validated['status'],
             'inventory_qty' => $validated['inventory_qty'],
+            'fulfillment_type' => $validated['fulfillment_type'] ?? 'physical',
         ]);
 
         return response()->json([
@@ -133,6 +136,7 @@ final class ProductController
             'price_kobo' => ['required', 'integer', 'min:0'],
             'status' => ['required', Rule::in(['draft', 'published'])],
             'inventory_qty' => ['required', 'integer', 'min:0'],
+            'fulfillment_type' => ['sometimes', Rule::in(['physical', 'digital'])],
         ]);
 
         $product->update([
@@ -141,6 +145,7 @@ final class ProductController
             'price_kobo' => $validated['price_kobo'],
             'status' => $validated['status'],
             'inventory_qty' => $validated['inventory_qty'],
+            'fulfillment_type' => $validated['fulfillment_type'] ?? $product->fulfillment_type,
         ]);
 
         return response()->json([
@@ -188,6 +193,7 @@ final class ProductController
             'price_kobo',
             'status',
             'inventory_qty',
+            'fulfillment_type',
         ]);
     }
 

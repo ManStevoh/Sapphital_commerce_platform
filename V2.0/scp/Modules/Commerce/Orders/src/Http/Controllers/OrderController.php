@@ -17,6 +17,7 @@ final class OrderController
 {
     public function __construct(
         private readonly OrderService $orderService,
+        private readonly \Platform\FinancialServices\Services\RefundService $refundService,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -94,6 +95,54 @@ final class OrderController
         return response()->json([
             'data' => $this->orderPayload($order),
         ], Response::HTTP_CREATED);
+    }
+
+    public function refund(Request $request, string $id): JsonResponse
+    {
+        $tenantId = $this->tenantId($request);
+
+        if ($tenantId === null) {
+            return $this->missingTenantResponse();
+        }
+
+        $validated = $request->validate([
+            'amount_kobo' => ['nullable', 'integer', 'min:1'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        try {
+            $result = $this->refundService->refundOrder(
+                $tenantId,
+                $id,
+                $validated['amount_kobo'] ?? null,
+                $validated['reason'] ?? null,
+            );
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => collect($exception->errors())->flatten()->first()
+                    ?? 'Refund failed.',
+                'errors' => $exception->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (ModelNotFoundException) {
+            return $this->notFoundResponse();
+        }
+
+        $refund = $result['refund'];
+        $order = $result['order'];
+
+        return response()->json([
+            'data' => [
+                'refund' => [
+                    'id' => $refund->id,
+                    'order_id' => $refund->order_id,
+                    'amount_kobo' => $refund->amount_kobo,
+                    'currency' => $refund->currency,
+                    'status' => $refund->status->value,
+                    'gateway_refund_reference' => $refund->gateway_refund_reference,
+                ],
+                'order' => $this->orderPayload($order),
+            ],
+        ]);
     }
 
     private function findTenantOrder(string $tenantId, string $id): ?Order

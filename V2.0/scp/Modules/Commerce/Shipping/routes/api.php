@@ -20,7 +20,7 @@ Route::middleware('tenant.context')->group(function (): void {
     Route::get('/v1/commerce/shipping/shipments/{id}', [ShipmentController::class, 'show'])
         ->name('shipping.shipments.show');
 
-    Route::middleware(['auth:sanctum', 'merchant.tenant'])->group(function (): void {
+    Route::middleware(['auth:sanctum', 'merchant.tenant', 'permission.check:shipments.manage'])->group(function (): void {
         Route::post('/v1/commerce/shipping/shipments/from-order', [ShipmentController::class, 'createFromOrder'])
             ->name('shipping.shipments.from-order');
 

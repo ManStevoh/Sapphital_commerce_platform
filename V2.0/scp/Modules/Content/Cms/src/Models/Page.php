@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Modules\Commerce\Catalog\Models;
+namespace Modules\Content\Cms\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Content\Cms\Enums\ContentStatus;
+use Modules\Content\Cms\Enums\PageContentType;
 use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
-final class Product extends Model
+final class Page extends Model
 {
     use BelongsToTenant;
     use HasUuids;
@@ -17,19 +19,21 @@ final class Product extends Model
 
     protected $keyType = 'string';
 
-    protected $table = 'products';
+    protected $table = 'cms_pages';
 
     /**
      * @var list<string>
      */
     protected $fillable = [
         'tenant_id',
-        'name',
+        'title',
         'slug',
-        'price_kobo',
+        'content_type',
+        'body_json',
+        'seo_title',
+        'seo_description',
         'status',
-        'inventory_qty',
-        'fulfillment_type',
+        'published_at',
     ];
 
     /**
@@ -39,8 +43,10 @@ final class Product extends Model
     {
         return [
             'tenant_id' => 'string',
-            'price_kobo' => 'integer',
-            'inventory_qty' => 'integer',
+            'content_type' => PageContentType::class,
+            'body_json' => 'array',
+            'status' => ContentStatus::class,
+            'published_at' => 'datetime',
         ];
     }
 }

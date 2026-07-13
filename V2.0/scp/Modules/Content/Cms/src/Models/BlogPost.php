@@ -2,13 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Modules\Commerce\Catalog\Models;
+namespace Modules\Content\Cms\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Content\Cms\Enums\ContentStatus;
 use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
-final class Product extends Model
+final class BlogPost extends Model
 {
     use BelongsToTenant;
     use HasUuids;
@@ -17,19 +18,24 @@ final class Product extends Model
 
     protected $keyType = 'string';
 
-    protected $table = 'products';
+    protected $table = 'cms_blog_posts';
 
     /**
      * @var list<string>
      */
     protected $fillable = [
         'tenant_id',
-        'name',
+        'title',
         'slug',
-        'price_kobo',
+        'excerpt',
+        'body_json',
+        'author_name',
+        'tags',
+        'featured_image_url',
+        'seo_title',
+        'seo_description',
         'status',
-        'inventory_qty',
-        'fulfillment_type',
+        'published_at',
     ];
 
     /**
@@ -39,8 +45,10 @@ final class Product extends Model
     {
         return [
             'tenant_id' => 'string',
-            'price_kobo' => 'integer',
-            'inventory_qty' => 'integer',
+            'body_json' => 'array',
+            'tags' => 'array',
+            'status' => ContentStatus::class,
+            'published_at' => 'datetime',
         ];
     }
 }
