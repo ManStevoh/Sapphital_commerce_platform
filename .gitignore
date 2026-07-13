@@ -24,6 +24,7 @@ auth.json
 **/storage/*.key
 .phpunit.result.cache
 .phpunit.cache
+.git/auto-push.log
 
 # Build artifacts
 **/.docusaurus/

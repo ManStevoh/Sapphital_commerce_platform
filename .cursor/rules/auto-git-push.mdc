@@ -30,11 +30,12 @@ After **every completed, tested step** (tests pass or UI flow verified):
 
 ## Push behavior
 
+- **Every `git commit` MUST be followed by `git push`** — no exceptions for SCP work
+- A **`post-commit` git hook** (`scripts/git-hooks/post-commit.ps1`) auto-pushes in the background; run `scripts/install-git-hooks.ps1` after clone if hooks are missing
 - Remote: `origin` → `https://github.com/ManStevoh/Sapphital_commerce_platform.git`
 - Branch: current working branch (default `main`)
-- Run push **in background** (`block_until_ms: 0`); poll with `Await` only when verifying push success
-- Push after **every** commit when possible; batch push every 10–25 commits during bulk bootstrap only
-- On push failure (auth/network): log error, continue work, retry push on next successful step
+- Agent: run `git push origin <branch>` in the **background** (`block_until_ms: 0`) immediately after commit — hook is a safety net, not a substitute
+- On push failure (auth/network): log to `.git/auto-push.log`, continue work, retry on next commit
 
 ## Do not commit
 
