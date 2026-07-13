@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { AddToCartButton } from '@/components/AddToCartButton';
+import { TrackRecentlyViewed } from '@/components/TrackRecentlyViewed';
 import { fetchProduct, fetchRelatedProducts, formatNgn } from '@/lib/api';
 
 interface ProductDetailPageProps {
@@ -90,6 +91,11 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           productId={product.id}
           tenantId={product.tenant_id}
           disabled={!inStock}
+        />
+
+        <TrackRecentlyViewed
+          productId={product.id}
+          tenantKey={tenantSlug ?? product.tenant_id}
         />
 
         {related.length > 0 && (

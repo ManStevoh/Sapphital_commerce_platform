@@ -92,7 +92,7 @@ Per [Volume 5 Ch. 03](../05-commerce-engine/03-collections-and-categories.md):
 - [x] Collection scheduling (start/end dates)
 - [x] Product tags for filtering and collection rules
 - [x] Related products on PDP (same collection + manual override)
-- [ ] Homepage section: "Recently viewed" for returning visitors (cookie-based)
+- [x] Homepage section: "Recently viewed" for returning visitors (cookie-based)
 
 ---
 

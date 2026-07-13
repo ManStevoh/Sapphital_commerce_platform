@@ -4,6 +4,7 @@ import { headers } from 'next/headers';
 import { fetchProducts, fetchStoreNavigation } from '@/lib/api';
 import { HeroSection } from '@/components/theme/HeroSection';
 import { ProductGridSection } from '@/components/theme/ProductGridSection';
+import { RecentlyViewedSection } from '@/components/RecentlyViewedSection';
 import { StoreHeader } from '@/components/theme/StoreHeader';
 import { TrustBarSection } from '@/components/theme/TrustBarSection';
 import { loadStorefrontTheme } from '@/lib/theme-loader';
@@ -58,6 +59,10 @@ export default async function StorefrontPage() {
       {!error && (
         <>
           <HeroSection storeName={storeName} theme={themeBundle?.config ?? null} />
+          <RecentlyViewedSection
+            products={products}
+            tenantKey={tenantSlug ?? 'store'}
+          />
           <ProductGridSection products={products} />
           <TrustBarSection />
         </>
