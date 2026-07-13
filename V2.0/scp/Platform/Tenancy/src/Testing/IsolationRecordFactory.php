@@ -45,6 +45,7 @@ use Modules\Content\Cms\Models\NavigationMenu;
 use Modules\Content\Cms\Models\Page;
 use Modules\Content\Cms\Enums\ContentStatus;
 use Modules\Content\Cms\Enums\NavigationLocation;
+use Platform\Ai\Models\AiUsageEvent;
 
 final class IsolationRecordFactory
 {
@@ -162,6 +163,18 @@ final class IsolationRecordFactory
                 'version_number' => 1,
                 'snapshot_json' => ['title' => 'Isolation Snapshot'],
                 'label' => 'Isolation',
+            ]),
+            AiUsageEvent::class => AiUsageEvent::query()->create([
+                'tenant_id' => $tenantId,
+                'feature_key' => 'product_description',
+                'model' => 'fake-local',
+                'provider' => 'fake',
+                'prompt_hash' => hash('sha256', 'isolation'),
+                'prompt_tokens' => 1,
+                'completion_tokens' => 1,
+                'total_tokens' => 2,
+                'was_watermarked' => true,
+                'occurred_at' => now(),
             ]),
             default => throw new InvalidArgumentException("No isolation seeder for {$modelClass}"),
         };

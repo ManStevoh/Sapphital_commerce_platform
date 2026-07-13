@@ -140,6 +140,7 @@ abstract class PlatformTestCase extends TestCase
             'Modules/Commerce/Orders/database/migrations',
             'Modules/Commerce/Shipping/database/migrations',
             'Modules/Content/Cms/database/migrations',
+            'Platform/Ai/database/migrations',
         ] as $path) {
             $this->artisan('migrate', [
                 '--path' => base_path($path),

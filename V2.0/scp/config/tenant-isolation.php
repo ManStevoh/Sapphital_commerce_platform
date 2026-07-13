@@ -35,6 +35,7 @@ return [
         Modules\Content\Cms\Models\BlogPost::class,
         Modules\Content\Cms\Models\NavigationMenu::class,
         Modules\Content\Cms\Models\ContentVersion::class,
+        Platform\Ai\Models\AiUsageEvent::class,
     ],
 
     'api_resources' => [

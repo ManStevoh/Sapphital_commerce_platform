@@ -1544,3 +1544,59 @@ export async function deleteSearchSynonym(tenantId: string, synonymId: string): 
     await parseJson(response);
   }
 }
+
+export interface AiDescriptionDraft {
+  draft: string;
+  provider: string;
+  model: string;
+  degraded: boolean;
+  requires_merchant_edit: boolean;
+  watermark: string;
+}
+
+export interface AiUsageSummary {
+  period_start: string;
+  requests: number;
+  tokens: number;
+  by_feature: Record<string, { requests: number; tokens: number }>;
+}
+
+export async function generateProductDescription(
+  tenantId: string,
+  input: { title: string; keywords: string[] },
+): Promise<AiDescriptionDraft> {
+  const response = await fetch(`${API_URL}/api/v1/platform/ai/product-description`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: AiDescriptionDraft }>(response);
+  return result.data;
+}
+
+export async function fetchAiUsage(tenantId: string): Promise<AiUsageSummary> {
+  const response = await fetch(`${API_URL}/api/v1/platform/ai/usage`, {
+    headers: tenantHeaders(tenantId),
+  });
+  const result = await parseJson<{ data: AiUsageSummary }>(response);
+  return result.data;
+}
+
+export async function updateAiSettings(
+  tenantId: string,
+  input: { ai_enabled: boolean },
+): Promise<{ ai_enabled: boolean }> {
+  const response = await fetch(`${API_URL}/api/v1/platform/ai/settings`, {
+    method: 'PUT',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: { ai_enabled: boolean } }>(response);
+  return result.data;
+}

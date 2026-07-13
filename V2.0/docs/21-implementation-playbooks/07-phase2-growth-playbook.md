@@ -105,13 +105,13 @@ Build per [Volume 9 Ch. 01–04](../09-ai-platform/README.md):
 
 **Checklist:**
 
-- [ ] AI provider abstraction: OpenAI GPT-4o primary, fallback model configured
-- [ ] Prompt template registry with version control
-- [ ] Token usage metering per tenant ([Volume 16 Ch. 05](../16-saas-multi-tenancy/05-usage-metering.md))
-- [ ] Rate limits: 50 AI requests/day Starter, 200 Growth, 500 Pro
-- [ ] PII scrubbing before prompt submission (no customer email in prompts)
-- [ ] AI audit log: prompt hash, model, tokens, tenant_id, feature
-- [ ] Opt-out setting for merchants who disable AI features
+- [x] AI provider abstraction: OpenAI GPT-4o primary, fallback model configured
+- [x] Prompt template registry with version control
+- [x] Token usage metering per tenant ([Volume 16 Ch. 05](../16-saas-multi-tenancy/05-usage-metering.md))
+- [x] Rate limits: 50 AI requests/day Starter, 200 Growth, 500 Pro
+- [x] PII scrubbing before prompt submission (no customer email in prompts)
+- [x] AI audit log: prompt hash, model, tokens, tenant_id, feature
+- [x] Opt-out setting for merchants who disable AI features
 
 ### 3.2 Phase 2 AI Features
 
@@ -125,11 +125,11 @@ Build per [Volume 9 Ch. 01–04](../09-ai-platform/README.md):
 
 **Checklist:**
 
-- [ ] Product description: merchant clicks "Generate" → editable draft in ≤ 5 seconds
-- [ ] AI features require explicit merchant action (no auto-publish)
-- [ ] Generated content watermark in audit log
-- [ ] Usage dashboard in admin: tokens consumed this month
-- [ ] Fallback to manual entry if AI provider unavailable (graceful degradation)
+- [x] Product description: merchant clicks "Generate" → editable draft in ≤ 5 seconds
+- [x] AI features require explicit merchant action (no auto-publish)
+- [x] Generated content watermark in audit log
+- [x] Usage dashboard in admin: tokens consumed this month
+- [x] Fallback to manual entry if AI provider unavailable (graceful degradation)
 
 **Gate §3:** 30% of active merchants use AI description generator within 60 days of launch.
 
@@ -263,7 +263,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 | 2 | Blog + SEO | Gate §1 | ☑ |
 | 3 | Search facets + analytics | §2 | ☑ |
 | 4 | Smart collections | §2 | ☑ |
-| 5 | AI description + SEO gen | Gate §3 | ☐ |
+| 5 | AI description + SEO gen | Gate §3 | ☑ |
 | 6 | Digital products + gift cards | §4 | ☐ |
 | 7 | Customer accounts | §4 | ☐ |
 | 8 | Infra Phase 2 topology | Gate §5 | ☐ |

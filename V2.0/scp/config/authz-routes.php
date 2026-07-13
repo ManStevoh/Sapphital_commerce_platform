@@ -141,4 +141,9 @@ return [
     'cms.blog-posts.versions.restore' => ['method' => 'POST', 'uri' => '/api/v1/content/cms/blog-posts/00000000-0000-4000-8000-000000000001/versions/00000000-0000-4000-8000-000000000002/restore', 'archetype' => 'merchant'],
     'cms.navigation.show' => ['method' => 'GET', 'uri' => '/api/v1/content/cms/navigation/header', 'archetype' => 'tenant'],
     'cms.navigation.upsert' => ['method' => 'PUT', 'uri' => '/api/v1/content/cms/navigation/header', 'archetype' => 'merchant'],
+
+    'ai.product-description.generate' => ['method' => 'POST', 'uri' => '/api/v1/platform/ai/product-description', 'archetype' => 'merchant'],
+    'ai.seo-meta.generate' => ['method' => 'POST', 'uri' => '/api/v1/platform/ai/seo-meta', 'archetype' => 'merchant'],
+    'ai.usage.show' => ['method' => 'GET', 'uri' => '/api/v1/platform/ai/usage', 'archetype' => 'merchant'],
+    'ai.settings.update' => ['method' => 'PUT', 'uri' => '/api/v1/platform/ai/settings', 'archetype' => 'merchant'],
 ];

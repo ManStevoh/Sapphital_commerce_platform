@@ -7,6 +7,7 @@ import { AdminShell, Alert, Button, Card, Input } from '@sapphital/scp-ui';
 import {
   clearAuth,
   fetchProduct,
+  generateProductDescription,
   getStoredTenantId,
   getStoredToken,
   updateProduct,
@@ -24,9 +25,11 @@ export default function EditProductPage() {
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
   const [inventoryQty, setInventoryQty] = useState('0');
   const [tagsInput, setTagsInput] = useState('');
+  const [descriptionDraft, setDescriptionDraft] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     const token = getStoredToken();
@@ -101,6 +104,46 @@ export default function EditProductPage() {
     router.push('/login');
   }
 
+  async function handleGenerateDescription() {
+    const tenantId = getStoredTenantId();
+
+    if (!tenantId) {
+      router.replace('/login');
+      return;
+    }
+
+    if (!name.trim()) {
+      setError('Enter a product name before generating a description.');
+      return;
+    }
+
+    const keywords = tagsInput
+      .split(',')
+      .map((tag) => tag.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+
+    if (keywords.length === 0) {
+      setError('Add up to 3 tags/keywords before generating.');
+      return;
+    }
+
+    setGenerating(true);
+    setError(null);
+
+    try {
+      const result = await generateProductDescription(tenantId, {
+        title: name.trim(),
+        keywords,
+      });
+      setDescriptionDraft(result.draft);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate description.');
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   if (loading) {
     return (
       <AdminShell title="Edit product" subtitle="Loading…" nav={adminNav} activeHref="/products">
@@ -158,11 +201,45 @@ export default function EditProductPage() {
             onChange={(e) => setInventoryQty(e.target.value)}
           />
           <Input
-            label="Tags (comma-separated)"
+            label="Tags (comma-separated, used as AI keywords)"
             value={tagsInput}
             onChange={(e) => setTagsInput(e.target.value)}
             placeholder="sale, electronics"
           />
+
+          <div style={{ marginBottom: 16 }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginBottom: 8,
+              }}
+            >
+              <span style={{ fontSize: '0.875rem' }}>AI description draft (edit before use)</span>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={generating || submitting}
+                onClick={handleGenerateDescription}
+              >
+                {generating ? 'Generating…' : 'Generate'}
+              </Button>
+            </div>
+            <textarea
+              value={descriptionDraft}
+              onChange={(e) => setDescriptionDraft(e.target.value)}
+              rows={5}
+              placeholder="Optional AI draft — not auto-published"
+              style={{
+                width: '100%',
+                padding: '8px 12px',
+                borderRadius: 4,
+                border: '1px solid var(--color-border)',
+              }}
+            />
+          </div>
 
           {error && <Alert>{error}</Alert>}
 

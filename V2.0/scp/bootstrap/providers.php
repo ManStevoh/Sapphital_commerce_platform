@@ -20,6 +20,8 @@ return [
 
     Platform\Tenancy\TenancyServiceProvider::class,
 
+    Platform\Ai\AiServiceProvider::class,
+
     Connectors\Paystack\PaystackServiceProvider::class,
 
     Connectors\Flutterwave\FlutterwaveServiceProvider::class,
