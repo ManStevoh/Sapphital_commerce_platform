@@ -8,12 +8,16 @@ if (-not (Test-Path $hooksDst)) {
     Write-Error "Not a git repository: $Root"
 }
 
-# post-commit: invoke PowerShell hook script after each commit
+$psHook = ($hooksSrc -replace '\\', '/') + "/post-commit.ps1"
+$rootUnix = ($Root -replace '\\', '/')
+
+# Git for Windows runs hooks via sh; background push must not block commit
 $postCommit = @"
-@echo off
-powershell -NoProfile -ExecutionPolicy Bypass -File "$hooksSrc\post-commit.ps1"
-exit /b 0
+#!/bin/sh
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$psHook" &
+exit 0
 "@
 
-Set-Content -Path (Join-Path $hooksDst "post-commit") -Value $postCommit -Encoding ASCII
+$hookPath = Join-Path $hooksDst "post-commit"
+[System.IO.File]::WriteAllText($hookPath, $postCommit.Replace("`r`n", "`n"))
 Write-Host "Installed post-commit hook -> auto-push on every commit"
