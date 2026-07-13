@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Commerce\Catalog\Http\Controllers\CollectionController;
 use Modules\Commerce\Catalog\Http\Controllers\HealthController;
 use Modules\Commerce\Catalog\Http\Controllers\ProductController;
+use Modules\Commerce\Catalog\Http\Controllers\SearchController;
 use Modules\Commerce\Catalog\Http\Controllers\StorefrontController;
 
 Route::get('/v1/commerce/catalog/health', [HealthController::class, 'show'])
@@ -42,6 +43,9 @@ Route::middleware('tenant.context')->group(function (): void {
     Route::get('/v1/commerce/catalog/collections/{id}/products', [CollectionController::class, 'products'])
         ->name('catalog.collections.products');
 
+    Route::get('/v1/commerce/catalog/search', [SearchController::class, 'search'])
+        ->name('catalog.search');
+
     Route::middleware(['auth:sanctum', 'merchant.tenant', 'permission.check:catalog.write'])->group(function (): void {
         Route::post('/v1/commerce/catalog/products', [ProductController::class, 'store'])
             ->name('catalog.products.store');
@@ -63,6 +67,18 @@ Route::middleware('tenant.context')->group(function (): void {
 
         Route::put('/v1/commerce/catalog/collections/{id}/products', [CollectionController::class, 'syncProducts'])
             ->name('catalog.collections.products.sync');
+
+        Route::get('/v1/commerce/catalog/search/analytics', [SearchController::class, 'analytics'])
+            ->name('catalog.search.analytics');
+
+        Route::get('/v1/commerce/catalog/search/synonyms', [SearchController::class, 'synonymsIndex'])
+            ->name('catalog.search.synonyms.index');
+
+        Route::post('/v1/commerce/catalog/search/synonyms', [SearchController::class, 'synonymsStore'])
+            ->name('catalog.search.synonyms.store');
+
+        Route::delete('/v1/commerce/catalog/search/synonyms/{id}', [SearchController::class, 'synonymsDestroy'])
+            ->name('catalog.search.synonyms.destroy');
 
         Route::put('/v1/commerce/storefront/theme/settings', [StorefrontController::class, 'updateThemeSettings'])
             ->name('storefront.theme.settings.update');

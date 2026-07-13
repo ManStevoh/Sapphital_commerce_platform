@@ -12,6 +12,8 @@ use Modules\Commerce\Cart\Models\CartItem;
 use Modules\Commerce\Catalog\Models\Collection;
 use Modules\Commerce\Catalog\Models\CollectionProduct;
 use Modules\Commerce\Catalog\Models\Product;
+use Modules\Commerce\Catalog\Models\ProductSearchQuery;
+use Modules\Commerce\Catalog\Models\ProductSearchSynonym;
 use Modules\Commerce\Catalog\Enums\CollectionStatus;
 use Modules\Commerce\Catalog\Enums\CollectionType;
 use Modules\Commerce\Checkout\Models\CheckoutSession;
@@ -69,6 +71,17 @@ final class IsolationRecordFactory
                 'sort_order' => 'manual',
             ]),
             CollectionProduct::class => $this->createCollectionProduct($tenantId),
+            ProductSearchSynonym::class => ProductSearchSynonym::query()->create([
+                'tenant_id' => $tenantId,
+                'term' => 'sneakers',
+                'synonym' => 'trainers',
+            ]),
+            ProductSearchQuery::class => ProductSearchQuery::query()->create([
+                'tenant_id' => $tenantId,
+                'query' => 'isolation query',
+                'results_count' => 0,
+                'searched_at' => now(),
+            ]),
             Cart::class => Cart::query()->create([
                 'tenant_id' => $tenantId,
                 'session_id' => (string) Str::uuid(),

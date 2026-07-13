@@ -1485,3 +1485,62 @@ export async function fetchCollectionProducts(
   const result = await parseJson<{ data: Product[] }>(response);
   return result.data;
 }
+
+export interface SearchAnalytics {
+  top_queries: Array<{ query: string; searches: number; avg_results: number }>;
+  zero_result_queries: Array<{ query: string; searches: number }>;
+  window_days: number;
+}
+
+export interface SearchSynonym {
+  id: string;
+  tenant_id: string;
+  term: string;
+  synonym: string;
+}
+
+export async function fetchSearchAnalytics(tenantId: string): Promise<SearchAnalytics> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/catalog/search/analytics`, {
+    headers: tenantHeaders(tenantId),
+  });
+  const result = await parseJson<{ data: SearchAnalytics }>(response);
+  return result.data;
+}
+
+export async function fetchSearchSynonyms(tenantId: string): Promise<SearchSynonym[]> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/catalog/search/synonyms`, {
+    headers: tenantHeaders(tenantId),
+  });
+  const result = await parseJson<{ data: SearchSynonym[] }>(response);
+  return result.data;
+}
+
+export async function createSearchSynonym(
+  tenantId: string,
+  input: { term: string; synonym: string },
+): Promise<SearchSynonym> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/catalog/search/synonyms`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: SearchSynonym }>(response);
+  return result.data;
+}
+
+export async function deleteSearchSynonym(tenantId: string, synonymId: string): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/catalog/search/synonyms/${encodeURIComponent(synonymId)}`,
+    {
+      method: 'DELETE',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+
+  if (!response.ok && response.status !== 204) {
+    await parseJson(response);
+  }
+}

@@ -14,6 +14,8 @@ return [
         Modules\Commerce\Catalog\Models\Product::class,
         Modules\Commerce\Catalog\Models\Collection::class,
         Modules\Commerce\Catalog\Models\CollectionProduct::class,
+        Modules\Commerce\Catalog\Models\ProductSearchSynonym::class,
+        Modules\Commerce\Catalog\Models\ProductSearchQuery::class,
         Modules\Commerce\Cart\Models\Cart::class,
         Modules\Commerce\Checkout\Models\CheckoutSession::class,
         Modules\Commerce\Orders\Models\Order::class,

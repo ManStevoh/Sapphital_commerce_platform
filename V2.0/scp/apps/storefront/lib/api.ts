@@ -583,6 +583,114 @@ export async function fetchCollectionBySlug(
 
 
 
+export interface ProductSearchFacets {
+
+  price: {
+
+    min_kobo: number;
+
+    max_kobo: number;
+
+    applied_min_kobo: number | null;
+
+    applied_max_kobo: number | null;
+
+  };
+
+  availability: {
+
+    in_stock: number;
+
+    out_of_stock: number;
+
+  };
+
+  fulfillment_type: Record<string, number>;
+
+}
+
+
+
+export async function searchProducts(
+
+  params: {
+
+    q?: string;
+
+    minPriceKobo?: number;
+
+    maxPriceKobo?: number;
+
+    inStock?: boolean;
+
+    fulfillmentType?: 'physical' | 'digital';
+
+    tag?: string;
+
+    limit?: number;
+
+  },
+
+  tenantSlug?: string,
+
+): Promise<{ products: Product[]; facets: ProductSearchFacets; resultsCount: number; query: string }> {
+
+  const tenantId = await resolveTenantId(tenantSlug);
+
+  const query = new URLSearchParams();
+
+  if (params.q) query.set('q', params.q);
+
+  if (params.minPriceKobo != null) query.set('min_price_kobo', String(params.minPriceKobo));
+
+  if (params.maxPriceKobo != null) query.set('max_price_kobo', String(params.maxPriceKobo));
+
+  if (params.inStock != null) query.set('in_stock', params.inStock ? '1' : '0');
+
+  if (params.fulfillmentType) query.set('fulfillment_type', params.fulfillmentType);
+
+  if (params.tag) query.set('tag', params.tag);
+
+  if (params.limit != null) query.set('limit', String(params.limit));
+
+  const response = await fetch(
+
+    `${API_URL}/api/v1/commerce/catalog/search?${query.toString()}`,
+
+    {
+
+      headers: tenantHeaders(tenantId),
+
+      next: { revalidate: 15 },
+
+    },
+
+  );
+
+  const result = await parseJson<{
+
+    data: Product[];
+
+    meta: { query: string; results_count: number; facets: ProductSearchFacets };
+
+  }>(response);
+
+  return {
+
+    products: result.data,
+
+    facets: result.meta.facets,
+
+    resultsCount: result.meta.results_count,
+
+    query: result.meta.query,
+
+  };
+
+}
+
+
+
 export async function fetchTheme(tenantId: string): Promise<ThemeConfig> {
 
   const response = await fetch(`${API_URL}/api/v1/commerce/storefront/theme`, {

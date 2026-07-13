@@ -69,6 +69,11 @@ return [
     'catalog.collections.update' => ['method' => 'PUT', 'uri' => '/api/v1/commerce/catalog/collections/00000000-0000-4000-8000-000000000001', 'archetype' => 'merchant'],
     'catalog.collections.destroy' => ['method' => 'DELETE', 'uri' => '/api/v1/commerce/catalog/collections/00000000-0000-4000-8000-000000000001', 'archetype' => 'merchant'],
     'catalog.collections.products.sync' => ['method' => 'PUT', 'uri' => '/api/v1/commerce/catalog/collections/00000000-0000-4000-8000-000000000001/products', 'archetype' => 'merchant'],
+    'catalog.search' => ['method' => 'GET', 'uri' => '/api/v1/commerce/catalog/search', 'archetype' => 'tenant'],
+    'catalog.search.analytics' => ['method' => 'GET', 'uri' => '/api/v1/commerce/catalog/search/analytics', 'archetype' => 'merchant'],
+    'catalog.search.synonyms.index' => ['method' => 'GET', 'uri' => '/api/v1/commerce/catalog/search/synonyms', 'archetype' => 'merchant'],
+    'catalog.search.synonyms.store' => ['method' => 'POST', 'uri' => '/api/v1/commerce/catalog/search/synonyms', 'archetype' => 'merchant'],
+    'catalog.search.synonyms.destroy' => ['method' => 'DELETE', 'uri' => '/api/v1/commerce/catalog/search/synonyms/00000000-0000-4000-8000-000000000001', 'archetype' => 'merchant'],
     'storefront.theme.settings.update' => ['method' => 'PUT', 'uri' => '/api/v1/commerce/storefront/theme/settings', 'archetype' => 'merchant'],
 
     'cart.health.show' => ['method' => 'GET', 'uri' => '/api/v1/commerce/cart/health', 'archetype' => 'public'],

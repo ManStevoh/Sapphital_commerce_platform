@@ -11,6 +11,7 @@ use Modules\Commerce\Catalog\Services\CatalogProductCounter;
 use Modules\Commerce\Catalog\Services\CollectionProductResolver;
 use Modules\Commerce\Catalog\Services\CollectionScheduleNormalizer;
 use Modules\Commerce\Catalog\Services\ProcessScheduledCollectionsService;
+use Modules\Commerce\Catalog\Services\ProductSearchService;
 use Modules\Commerce\Catalog\Services\ThemeResolver;
 use Platform\Billing\Contracts\TenantProductCounter;
 use Platform\Billing\Services\EntitlementChecker;
@@ -28,6 +29,7 @@ final class CatalogServiceProvider extends ServiceProvider
         $this->app->singleton(CollectionProductResolver::class);
         $this->app->singleton(CollectionScheduleNormalizer::class);
         $this->app->singleton(ProcessScheduledCollectionsService::class);
+        $this->app->singleton(ProductSearchService::class);
     }
 
     public function boot(): void

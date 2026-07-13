@@ -43,8 +43,21 @@ All product endpoints require `tenant.context` middleware (`X-Tenant-ID` header)
 
 Smart presets: `new_arrivals`, `on_sale`, `best_sellers`. Rule fields allowlisted (`tag`, `type`/`fulfillment_type`, `price_kobo`/`price_cents`, `created_at`). Scheduler: `catalog:process-scheduled-collections` every minute.
 
+## Phase 2 — Product search (P2.1)
+
+SQL-backed search (Meilisearch sync remains Phase 2 upgrade path):
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/v1/commerce/catalog/search` | Text + facets (`q`, price, stock, fulfillment_type, tag) |
+| `GET` | `/api/v1/commerce/catalog/search/analytics` | Top + zero-result queries (merchant) |
+| `GET/POST/DELETE` | `/api/v1/commerce/catalog/search/synonyms` | Tenant synonym dictionary |
+
+Platform synonym seeds include Nigerian marketplace variants (sneakers/trainers, phone/mobile, generator/genset, …).
+
 ## References
 
 - [Platform OS Ch. 13 §12](../../../docs/03-architecture/13-platform-os-architecture.md)
 - [Vol 5 Ch. 01–04](../../../docs/05-commerce-engine/)
 - [Vol 5 Ch. 03 Collections](../../../docs/05-commerce-engine/03-collections-and-categories.md)
+- [Vol 10 Ch. 04 Meilisearch](../../../docs/10-infrastructure/04-postgresql-redis-meilisearch.md)

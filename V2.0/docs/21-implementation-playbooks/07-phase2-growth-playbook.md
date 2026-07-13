@@ -78,9 +78,10 @@ Build per [Volume 7](../07-cms/README.md) and [ADR-012](../00-meta/adr/012-hybri
 
 Per [Volume 10 Ch. 04](../10-infrastructure/04-postgresql-redis-meilisearch.md):
 
-- [ ] Typo tolerance and synonym dictionary (Nigerian English variants)
-- [ ] Faceted filters: price range, availability, product type
-- [ ] Search analytics: top queries, zero-result queries in admin
+- [ ] Typo tolerance (Meilisearch / pg_trgm) — synonym dictionary shipped
+- [x] Synonym dictionary (platform Nigerian English variants + merchant CRUD)
+- [x] Faceted filters: price range, availability, product type
+- [x] Search analytics: top queries, zero-result queries in admin
 - [ ] Autocomplete p95 ≤ 100ms (NFR target)
 - [ ] Search result ranking: text relevance + sales velocity boost
 
@@ -260,7 +261,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 |---|------------|------|--------|
 | 1 | CMS page builder | Gate §1 | ☑ |
 | 2 | Blog + SEO | Gate §1 | ☑ |
-| 3 | Search facets + analytics | §2 | ☐ |
+| 3 | Search facets + analytics | §2 | ☑ |
 | 4 | Smart collections | §2 | ☑ |
 | 5 | AI description + SEO gen | Gate §3 | ☐ |
 | 6 | Digital products + gift cards | §4 | ☐ |
