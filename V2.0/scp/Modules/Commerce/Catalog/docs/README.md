@@ -55,6 +55,19 @@ SQL-backed search (Meilisearch sync remains Phase 2 upgrade path):
 
 Platform synonym seeds include Nigerian marketplace variants (sneakers/trainers, phone/mobile, generator/genset, …).
 
+## Phase 2 — Digital assets
+
+Local disk (`storage/app`) with key prefix `digital/{tenant}/{product}/` (swap to R2/S3 via Laravel filesystem disk in production).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/api/v1/commerce/catalog/products/{id}/digital-asset` | Upload file + download_limit |
+| `GET` | `/api/v1/commerce/catalog/products/{id}/digital-asset` | Asset metadata |
+| `POST` | `/api/v1/commerce/orders/digital-downloads` | Issue 72h signed download URL |
+| `GET` | `/api/v1/commerce/orders/digital-downloads/file/{tenantId}/{orderItemId}` | Signed file stream |
+
+Shipping: `GET /api/v1/commerce/shipping/rates?digital_only=1` returns empty rates (`shipping_required=false`).
+
 ## References
 
 - [Platform OS Ch. 13 §12](../../../docs/03-architecture/13-platform-os-architecture.md)

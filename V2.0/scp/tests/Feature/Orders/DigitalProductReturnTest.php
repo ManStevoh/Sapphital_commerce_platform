@@ -6,6 +6,7 @@ namespace Tests\Feature\Orders;
 
 use Illuminate\Support\Str;
 use Modules\Commerce\Catalog\Models\Product;
+use Modules\Commerce\Catalog\Models\ProductDigitalAsset;
 use Modules\Commerce\Orders\Models\Order;
 use Modules\Commerce\Orders\Models\OrderItem;
 use Platform\Identity\Enums\MerchantUserRole;
@@ -20,11 +21,16 @@ final class DigitalProductReturnTest extends PlatformTestCase
         $order = $this->createDigitalOrder($tenant);
         $item = $order->items->firstOrFail();
 
-        $this->postJson('/api/v1/commerce/orders/digital-downloads', [
+        $issue = $this->postJson('/api/v1/commerce/orders/digital-downloads', [
             'order_number' => $order->order_number,
             'customer_email' => $order->customer_email,
             'order_item_id' => $item->id,
         ], ['X-Tenant-ID' => $tenant->id])->assertOk();
+
+        $downloadUrl = (string) $issue->json('data.download_url');
+        $this->assertNotSame('', $downloadUrl);
+
+        $this->get($downloadUrl)->assertOk();
 
         $merchant = $this->createMerchantForTenant(
             $tenant,
@@ -112,7 +118,24 @@ final class DigitalProductReturnTest extends PlatformTestCase
             'quantity' => 1,
             'unit_price_kobo' => 2_000_00,
             'line_total_kobo' => 2_000_00,
+            'download_count' => 0,
+            'download_limit' => 3,
         ]);
+
+        ProductDigitalAsset::query()->create([
+            'tenant_id' => $tenant->id,
+            'product_id' => $product->id,
+            'storage_key' => 'digital/'.$tenant->id.'/'.$product->id.'/ebook.txt',
+            'original_filename' => 'ebook.txt',
+            'mime_type' => 'text/plain',
+            'byte_size' => 12,
+            'download_limit' => 3,
+        ]);
+
+        \Illuminate\Support\Facades\Storage::disk('local')->put(
+            'digital/'.$tenant->id.'/'.$product->id.'/ebook.txt',
+            'hello digital',
+        );
 
         return $order->fresh(['items']);
     }

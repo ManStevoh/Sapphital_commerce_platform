@@ -30,6 +30,8 @@ final class OrderItem extends Model
         'unit_price_kobo',
         'line_total_kobo',
         'downloaded_at',
+        'download_count',
+        'download_limit',
     ];
 
     /**
@@ -44,6 +46,8 @@ final class OrderItem extends Model
             'unit_price_kobo' => 'integer',
             'line_total_kobo' => 'integer',
             'downloaded_at' => 'datetime',
+            'download_count' => 'integer',
+            'download_limit' => 'integer',
         ];
     }
 

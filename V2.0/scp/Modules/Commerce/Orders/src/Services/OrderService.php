@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Commerce\Cart\Models\Cart;
 use Modules\Commerce\Catalog\Models\Product;
+use Modules\Commerce\Catalog\Models\ProductDigitalAsset;
 use Modules\Commerce\Checkout\Models\CheckoutSession;
 use Modules\Commerce\Orders\Models\Order;
 use Modules\Commerce\Orders\Models\OrderItem;
@@ -45,10 +46,15 @@ final class OrderService
             ->get(['id', 'name', 'fulfillment_type'])
             ->keyBy('id');
 
+        $downloadLimits = ProductDigitalAsset::query()
+            ->where('tenant_id', $session->tenant_id)
+            ->whereIn('product_id', $cart->items->pluck('product_id'))
+            ->pluck('download_limit', 'product_id');
+
         $subtotalKobo = (int) $cart->items->sum('line_total_kobo');
         $totalKobo = (int) ($session->total_kobo ?? $subtotalKobo);
 
-        return DB::transaction(function () use ($session, $cart, $productNames, $subtotalKobo, $totalKobo): Order {
+        return DB::transaction(function () use ($session, $cart, $productNames, $downloadLimits, $subtotalKobo, $totalKobo): Order {
             $order = Order::query()->create([
                 'tenant_id' => $session->tenant_id,
                 'checkout_session_id' => $session->id,
@@ -64,15 +70,20 @@ final class OrderService
             foreach ($cart->items as $cartItem) {
                 /** @var Product|null $product */
                 $product = $productNames->get($cartItem->product_id);
+                $fulfillment = (string) ($product?->fulfillment_type ?? 'physical');
 
                 OrderItem::query()->create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->product_id,
                     'product_name' => (string) ($product?->name ?? 'Unknown Product'),
-                    'fulfillment_type' => (string) ($product?->fulfillment_type ?? 'physical'),
+                    'fulfillment_type' => $fulfillment,
                     'quantity' => $cartItem->quantity,
                     'unit_price_kobo' => $cartItem->unit_price_kobo,
                     'line_total_kobo' => $cartItem->line_total_kobo,
+                    'download_count' => 0,
+                    'download_limit' => $fulfillment === 'digital'
+                        ? (int) ($downloadLimits[$cartItem->product_id] ?? 5)
+                        : null,
                 ]);
             }
 

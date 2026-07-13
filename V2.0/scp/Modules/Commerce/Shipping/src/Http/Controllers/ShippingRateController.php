@@ -37,6 +37,16 @@ final class ShippingRateController
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        if ($request->boolean('digital_only')) {
+            return response()->json([
+                'data' => [],
+                'meta' => [
+                    'shipping_required' => false,
+                    'reason' => 'digital_only_order',
+                ],
+            ]);
+        }
+
         $rates = $this->shippingRateCalculator->getApplicableRates(
             $tenantId,
             (int) $orderTotalKobo,
@@ -44,6 +54,9 @@ final class ShippingRateController
 
         return response()->json([
             'data' => $rates,
+            'meta' => [
+                'shipping_required' => $rates !== [],
+            ],
         ]);
     }
 

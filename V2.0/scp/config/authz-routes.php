@@ -60,6 +60,8 @@ return [
     'catalog.products.store' => ['method' => 'POST', 'uri' => '/api/v1/commerce/catalog/products', 'archetype' => 'merchant'],
     'catalog.products.update' => ['method' => 'PUT', 'uri' => '/api/v1/commerce/catalog/products/00000000-0000-4000-8000-000000000001', 'archetype' => 'merchant'],
     'catalog.products.destroy' => ['method' => 'DELETE', 'uri' => '/api/v1/commerce/catalog/products/00000000-0000-4000-8000-000000000001', 'archetype' => 'merchant'],
+    'catalog.products.digital-asset.show' => ['method' => 'GET', 'uri' => '/api/v1/commerce/catalog/products/00000000-0000-4000-8000-000000000001/digital-asset', 'archetype' => 'merchant'],
+    'catalog.products.digital-asset.store' => ['method' => 'POST', 'uri' => '/api/v1/commerce/catalog/products/00000000-0000-4000-8000-000000000001/digital-asset', 'archetype' => 'merchant'],
     'catalog.collections.index' => ['method' => 'GET', 'uri' => '/api/v1/commerce/catalog/collections', 'archetype' => 'tenant'],
     'catalog.collections.published' => ['method' => 'GET', 'uri' => '/api/v1/commerce/catalog/collections/published', 'archetype' => 'tenant'],
     'catalog.collections.by-slug' => ['method' => 'GET', 'uri' => '/api/v1/commerce/catalog/collections/by-slug/summer-sale', 'archetype' => 'tenant'],
@@ -88,6 +90,7 @@ return [
     'orders.show' => ['method' => 'GET', 'uri' => '/api/v1/commerce/orders/00000000-0000-4000-8000-000000000001', 'archetype' => 'tenant'],
     'orders.from-checkout' => ['method' => 'POST', 'uri' => '/api/v1/commerce/orders/from-checkout', 'archetype' => 'tenant'],
     'orders.digital-downloads.store' => ['method' => 'POST', 'uri' => '/api/v1/commerce/orders/digital-downloads', 'archetype' => 'tenant'],
+    'orders.digital-downloads.file' => ['method' => 'GET', 'uri' => '/api/v1/commerce/orders/digital-downloads/file/00000000-0000-4000-8000-000000000001/00000000-0000-4000-8000-000000000002', 'archetype' => 'public'],
     'orders.index' => ['method' => 'GET', 'uri' => '/api/v1/commerce/orders', 'archetype' => 'merchant'],
     'orders.refund' => ['method' => 'POST', 'uri' => '/api/v1/commerce/orders/00000000-0000-4000-8000-000000000001/refund', 'archetype' => 'merchant'],
 

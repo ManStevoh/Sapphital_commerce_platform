@@ -141,10 +141,10 @@ Per [Volume 5 Ch. 13–14](../05-commerce-engine/13-subscriptions-and-gift-cards
 
 ### 4.1 Digital Products
 
-- [ ] Product type: `digital` with file upload to R2
-- [ ] Secure download link generation post-payment (signed URL, 72h expiry)
-- [ ] Download limit per purchase (configurable)
-- [ ] No shipping required for digital-only orders
+- [x] Product type: `digital` with file upload to R2
+- [x] Secure download link generation post-payment (signed URL, 72h expiry)
+- [x] Download limit per purchase (configurable)
+- [x] No shipping required for digital-only orders
 
 ### 4.2 Gift Cards
 
@@ -264,7 +264,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 | 3 | Search facets + analytics | §2 | ☑ |
 | 4 | Smart collections | §2 | ☑ |
 | 5 | AI description + SEO gen | Gate §3 | ☑ |
-| 6 | Digital products + gift cards | §4 | ☐ |
+| 6 | Digital products + gift cards | §4 | partial |
 | 7 | Customer accounts | §4 | ☐ |
 | 8 | Infra Phase 2 topology | Gate §5 | ☐ |
 | 9 | Outbox pattern | §5.2 | ☐ |

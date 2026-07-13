@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Modules\Commerce\Orders\Services\DigitalFulfillmentService;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 final class DigitalDownloadController
 {
@@ -32,7 +33,7 @@ final class DigitalDownloadController
         ]);
 
         try {
-            $item = $this->digitalFulfillment->recordDownload(
+            $result = $this->digitalFulfillment->issueDownload(
                 $tenantId,
                 $validated['order_number'],
                 $validated['customer_email'],
@@ -45,18 +46,30 @@ final class DigitalDownloadController
         } catch (ValidationException $exception) {
             return response()->json([
                 'message' => collect($exception->errors())->flatten()->first()
-                    ?? 'Download could not be recorded.',
+                    ?? 'Download could not be issued.',
                 'errors' => $exception->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
+
+        $item = $result['item'];
 
         return response()->json([
             'data' => [
                 'order_item_id' => $item->id,
                 'fulfillment_type' => $item->fulfillment_type,
                 'downloaded_at' => $item->downloaded_at?->toIso8601String(),
+                'download_count' => (int) $item->download_count,
+                'download_limit' => $item->download_limit,
+                'download_url' => $result['download_url'],
+                'expires_at' => $result['expires_at'],
+                'downloads_remaining' => $result['downloads_remaining'],
             ],
         ]);
+    }
+
+    public function file(Request $request, string $tenantId, string $orderItemId): StreamedResponse
+    {
+        return $this->digitalFulfillment->streamSignedDownload($tenantId, $orderItemId);
     }
 
     private function tenantId(Request $request): ?string

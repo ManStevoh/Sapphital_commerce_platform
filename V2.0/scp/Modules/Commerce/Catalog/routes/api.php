@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\Commerce\Catalog\Http\Controllers\DigitalAssetController;
 use Modules\Commerce\Catalog\Http\Controllers\CollectionController;
 use Modules\Commerce\Catalog\Http\Controllers\HealthController;
 use Modules\Commerce\Catalog\Http\Controllers\ProductController;
@@ -55,6 +56,12 @@ Route::middleware('tenant.context')->group(function (): void {
 
         Route::delete('/v1/commerce/catalog/products/{id}', [ProductController::class, 'destroy'])
             ->name('catalog.products.destroy');
+
+        Route::get('/v1/commerce/catalog/products/{id}/digital-asset', [DigitalAssetController::class, 'show'])
+            ->name('catalog.products.digital-asset.show');
+
+        Route::post('/v1/commerce/catalog/products/{id}/digital-asset', [DigitalAssetController::class, 'store'])
+            ->name('catalog.products.digital-asset.store');
 
         Route::post('/v1/commerce/catalog/collections', [CollectionController::class, 'store'])
             ->name('catalog.collections.store');

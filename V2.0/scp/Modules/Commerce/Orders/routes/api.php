@@ -12,6 +12,10 @@ use Modules\Commerce\Orders\Http\Controllers\StoreSettingsController;
 Route::get('/v1/commerce/orders/health', [HealthController::class, 'show'])
     ->name('orders.health.show');
 
+Route::get('/v1/commerce/orders/digital-downloads/file/{tenantId}/{orderItemId}', [DigitalDownloadController::class, 'file'])
+    ->middleware('signed')
+    ->name('orders.digital-downloads.file');
+
 Route::middleware('tenant.context')->group(function (): void {
     Route::get('/v1/commerce/orders/{id}', [OrderController::class, 'show'])
         ->name('orders.show');

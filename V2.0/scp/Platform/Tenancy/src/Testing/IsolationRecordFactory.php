@@ -12,6 +12,7 @@ use Modules\Commerce\Cart\Models\CartItem;
 use Modules\Commerce\Catalog\Models\Collection;
 use Modules\Commerce\Catalog\Models\CollectionProduct;
 use Modules\Commerce\Catalog\Models\Product;
+use Modules\Commerce\Catalog\Models\ProductDigitalAsset;
 use Modules\Commerce\Catalog\Models\ProductSearchQuery;
 use Modules\Commerce\Catalog\Models\ProductSearchSynonym;
 use Modules\Commerce\Catalog\Enums\CollectionStatus;
@@ -77,6 +78,7 @@ final class IsolationRecordFactory
                 'term' => 'sneakers',
                 'synonym' => 'trainers',
             ]),
+            ProductDigitalAsset::class => $this->createDigitalAsset($tenantId),
             ProductSearchQuery::class => ProductSearchQuery::query()->create([
                 'tenant_id' => $tenantId,
                 'query' => 'isolation query',
@@ -239,6 +241,29 @@ final class IsolationRecordFactory
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::Trial,
             'trial_ends_at' => now()->addDays(14),
+        ]);
+    }
+
+    private function createDigitalAsset(string $tenantId): ProductDigitalAsset
+    {
+        $product = Product::query()->create([
+            'tenant_id' => $tenantId,
+            'name' => 'Isolation Digital',
+            'slug' => 'iso-digital-'.Str::random(6),
+            'price_kobo' => 50_000,
+            'status' => 'published',
+            'inventory_qty' => 0,
+            'fulfillment_type' => 'digital',
+        ]);
+
+        return ProductDigitalAsset::query()->create([
+            'tenant_id' => $tenantId,
+            'product_id' => $product->id,
+            'storage_key' => 'digital/'.$tenantId.'/'.$product->id.'/iso.txt',
+            'original_filename' => 'iso.txt',
+            'mime_type' => 'text/plain',
+            'byte_size' => 4,
+            'download_limit' => 5,
         ]);
     }
 
