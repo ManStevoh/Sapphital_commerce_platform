@@ -1,0 +1,96 @@
+{
+    "name": "sapphital/scp",
+    "type": "project",
+    "description": "SAPPHITAL Commerce Platform — implementation monorepo (ADR-023)",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^12.0",
+        "laravel/sanctum": "^4.0",
+        "sapphital/platform-billing": "@dev",
+        "sapphital/platform-financial-services": "@dev",
+        "sapphital/platform-identity": "@dev",
+        "sapphital/platform-notifications": "@dev",
+        "sapphital/platform-provisioning": "@dev",
+        "sapphital/platform-secrets": "@dev",
+        "sapphital/platform-tenancy": "@dev",
+        "sapphital/connector-paystack": "@dev",
+        "sapphital/connector-flutterwave": "@dev",
+        "sapphital/commerce-cart": "@dev",
+        "sapphital/commerce-catalog": "@dev",
+        "sapphital/commerce-checkout": "@dev",
+        "sapphital/commerce-orders": "@dev",
+        "sapphital/commerce-shipping": "@dev",
+        "sapphital/shared-money": "@dev"
+    },
+    "require-dev": {
+        "mockery/mockery": "^1.6",
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Modules\\Content\\Cms\\": "Modules/Content/Cms/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "Platform/*",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "Packages/*",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "Packages/shared/*",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "Connectors/*",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "Modules/Commerce/*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "test": "phpunit --colors=always"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

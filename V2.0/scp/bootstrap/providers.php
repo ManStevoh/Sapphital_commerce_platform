@@ -22,6 +22,8 @@ return [
 
     Connectors\Paystack\PaystackServiceProvider::class,
 
+    Connectors\Flutterwave\FlutterwaveServiceProvider::class,
+
     Modules\Commerce\Catalog\CatalogServiceProvider::class,
 
     Modules\Commerce\Cart\CartServiceProvider::class,
@@ -31,6 +33,8 @@ return [
     Modules\Commerce\Orders\OrdersServiceProvider::class,
 
     Modules\Commerce\Shipping\ShippingServiceProvider::class,
+
+    Modules\Content\Cms\CmsServiceProvider::class,
 
 ];
 

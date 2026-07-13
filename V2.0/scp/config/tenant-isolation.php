@@ -15,6 +15,7 @@ return [
         Modules\Commerce\Cart\Models\Cart::class,
         Modules\Commerce\Checkout\Models\CheckoutSession::class,
         Modules\Commerce\Orders\Models\Order::class,
+        Modules\Commerce\Orders\Models\ReturnRequest::class,
         Modules\Commerce\Shipping\Models\ShippingZone::class,
         Modules\Commerce\Shipping\Models\Shipment::class,
         Platform\Provisioning\Models\ProvisioningRun::class,
@@ -22,6 +23,13 @@ return [
         Platform\Billing\Models\Subscription::class,
         Platform\Identity\Models\Customer::class,
         Platform\Identity\Models\MerchantUser::class,
+        Platform\FinancialServices\Models\Refund::class,
+        Platform\FinancialServices\Models\Dispute::class,
+        Platform\Billing\Models\BillingPaymentIntent::class,
+        Platform\Tenancy\Models\CustomDomain::class,
+        Modules\Content\Cms\Models\Page::class,
+        Modules\Content\Cms\Models\BlogPost::class,
+        Modules\Content\Cms\Models\NavigationMenu::class,
     ],
 
     'api_resources' => [

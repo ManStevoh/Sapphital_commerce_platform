@@ -1,0 +1,862 @@
+openapi: 3.1.0
+info:
+  title: SAPPHITAL Commerce Platform API
+  version: 1.0.0
+  description: Phase 1 Nigeria GA — storefront, merchant admin, and platform endpoints.
+servers:
+  - url: http://localhost:8000/api
+    description: Local development
+  - url: https://api.sapphital.africa/api
+    description: Production (planned)
+tags:
+  - name: Provisioning
+  - name: Catalog
+  - name: Cart
+  - name: Checkout
+  - name: Payments
+  - name: Orders
+  - name: Returns
+  - name: Disputes
+  - name: Billing
+  - name: Identity
+  - name: Webhooks
+  - name: Storefront
+paths:
+  /v1/signup:
+    post:
+      tags: [Provisioning]
+      summary: Create merchant account and provision tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '202':
+          description: Provisioning started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignupResponse'
+  /v1/provisioning/{tenantId}/status:
+    get:
+      tags: [Provisioning]
+      summary: Poll tenant provisioning status
+      parameters:
+        - $ref: '#/components/parameters/TenantIdPath'
+      responses:
+        '200':
+          description: Provisioning status
+  /v1/commerce/catalog/products:
+    get:
+      tags: [Catalog]
+      summary: List published products
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Product list
+    post:
+      tags: [Catalog]
+      summary: Create product (merchant)
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '201':
+          description: Product created
+  /v1/commerce/cart:
+    get:
+      tags: [Cart]
+      summary: Get guest cart
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/SessionIdHeader'
+      responses:
+        '200':
+          description: Cart snapshot
+  /v1/commerce/cart/items:
+    post:
+      tags: [Cart]
+      summary: Add item to cart
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/SessionIdHeader'
+      responses:
+        '201':
+          description: Item added
+  /v1/commerce/checkout/sessions:
+    post:
+      tags: [Checkout]
+      summary: Create checkout session from cart
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      responses:
+        '201':
+          description: Checkout session created
+  /v1/platform/financial-services/payments/initialize:
+    post:
+      tags: [Payments]
+      summary: Initialize checkout payment (Paystack or Flutterwave)
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInitializeRequest'
+      responses:
+        '200':
+          description: PSP authorization URL and reference
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PaymentInitializeResponse'
+  /v1/platform/financial-services/payments/verify:
+    post:
+      tags: [Payments]
+      summary: Verify checkout payment reference
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentVerifyRequest'
+      responses:
+        '200':
+          description: Payment verified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PaymentVerifyResponse'
+  /v1/platform/financial-services/reconciliation:
+    get:
+      tags: [Payments]
+      summary: Payment reconciliation report
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Reconciliation ledger
+  /v1/platform/financial-services/reconciliation/export:
+    get:
+      tags: [Payments]
+      summary: Export reconciliation CSV
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: CSV download
+          content:
+            text/csv:
+              schema:
+                type: string
+  /v1/commerce/storefront/checkout-settings:
+    get:
+      tags: [Storefront]
+      summary: Public checkout settings (PSP label, currency)
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Checkout settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CheckoutSettings'
+  /v1/commerce/storefront/settings/payments:
+    get:
+      tags: [Payments]
+      summary: Get merchant payment provider settings
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Payment provider settings
+    put:
+      tags: [Payments]
+      summary: Update checkout payment provider
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [payment_provider]
+              properties:
+                payment_provider:
+                  type: string
+                  enum: [paystack, flutterwave]
+      responses:
+        '200':
+          description: Settings updated
+  /v1/commerce/storefront/settings/payments/credentials:
+    get:
+      tags: [Payments]
+      summary: Masked PSP credential status
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Credential status (secrets never returned in full)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PaymentCredentialsStatus'
+    put:
+      tags: [Payments]
+      summary: Store merchant PSP secret keys in vault
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCredentialsUpdate'
+      responses:
+        '200':
+          description: Credential status after update
+  /v1/webhooks/paystack:
+    post:
+      tags: [Webhooks]
+      summary: Paystack webhook receiver
+      parameters:
+        - name: X-Paystack-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook acknowledged
+  /v1/webhooks/flutterwave:
+    post:
+      tags: [Webhooks]
+      summary: Flutterwave webhook receiver
+      parameters:
+        - name: verif-hash
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook acknowledged
+  /v1/commerce/orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get order by ID
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Order details
+  /v1/commerce/orders/{id}/refund:
+    post:
+      tags: [Orders]
+      summary: Refund paid order (full or partial)
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount_kobo:
+                  type: integer
+                  minimum: 1
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Refund processed
+  /v1/commerce/returns:
+    get:
+      tags: [Returns]
+      summary: List return requests
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Return request list
+    post:
+      tags: [Returns]
+      summary: Create return request
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnRequestCreate'
+      responses:
+        '201':
+          description: Return request created
+  /v1/commerce/returns/guest/lookup:
+    post:
+      tags: [Returns]
+      summary: Look up order items for guest return
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_number, customer_email]
+              properties:
+                order_number:
+                  type: string
+                customer_email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Order items for return selection
+  /v1/commerce/returns/guest:
+    post:
+      tags: [Returns]
+      summary: Submit guest return request
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuestReturnRequestCreate'
+      responses:
+        '201':
+          description: Return request created
+  /v1/commerce/returns/{id}/approve:
+    post:
+      tags: [Returns]
+      summary: Approve return and issue refund
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                issue_refund:
+                  type: boolean
+                  description: When true, refund immediately (digital goods). Default false (physical receive flow).
+      responses:
+        '200':
+          description: Return approved
+  /v1/commerce/returns/{id}/ship:
+    post:
+      tags: [Returns]
+      summary: Mark approved return as shipped by customer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Return marked shipped
+  /v1/commerce/returns/{id}/receive:
+    post:
+      tags: [Returns]
+      summary: Mark return received, restock, and issue refund
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Return received and refunded
+  /v1/platform/financial-services/disputes:
+    get:
+      tags: [Disputes]
+      summary: List chargeback disputes
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Dispute list
+  /v1/platform/financial-services/disputes/{id}/resolve:
+    post:
+      tags: [Disputes]
+      summary: Resolve dispute case
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [won, lost, withdrawn]
+      responses:
+        '200':
+          description: Dispute resolved
+  /v1/commerce/returns/{id}/reject:
+    post:
+      tags: [Returns]
+      summary: Reject return request
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rejection_reason]
+              properties:
+                rejection_reason:
+                  type: string
+      responses:
+        '200':
+          description: Return rejected
+  /v1/platform/billing/invoices:
+    get:
+      tags: [Billing]
+      summary: List tenant invoices
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Invoice list
+  /v1/platform/billing/invoices/{id}/pdf:
+    get:
+      tags: [Billing]
+      summary: Download invoice PDF
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: PDF document
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+  /v1/commerce/orders/digital-downloads:
+    post:
+      tags: [Orders]
+      summary: Record digital product download (BR-RET-002)
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [order_number, customer_email, order_item_id]
+              properties:
+                order_number:
+                  type: string
+                customer_email:
+                  type: string
+                  format: email
+                order_item_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Download recorded
+  /v1/platform/billing/subscription:
+    get:
+      tags: [Billing]
+      summary: Current tenant subscription
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Subscription snapshot
+  /v1/platform/billing/subscriptions/{tenantId}/activate:
+    post:
+      tags: [Billing]
+      summary: Activate trial subscription after payment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/TenantIdPath'
+        - $ref: '#/components/parameters/TenantIdHeader'
+      responses:
+        '200':
+          description: Subscription activated
+  /v1/auth/merchant/login:
+    post:
+      tags: [Identity]
+      summary: Merchant login
+      responses:
+        '200':
+          description: Bearer token issued
+  /v1/auth/merchant/handoff:
+    post:
+      tags: [Identity]
+      summary: Exchange signup handoff token for merchant session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [handoff_token]
+              properties:
+                handoff_token:
+                  type: string
+      responses:
+        '200':
+          description: Bearer token and tenant_id issued
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  parameters:
+    TenantIdHeader:
+      name: X-Tenant-ID
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SessionIdHeader:
+      name: X-Session-ID
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IdempotencyKeyHeader:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TenantIdPath:
+      name: tenantId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    SignupRequest:
+      type: object
+      required: [email, password, store_name, plan_slug]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 12
+        store_name:
+          type: string
+        plan_slug:
+          type: string
+          enum: [starter, growth, pro]
+        cf-turnstile-response:
+          type: string
+    SignupResponse:
+      type: object
+      properties:
+        tenant_id:
+          type: string
+          format: uuid
+        provisioning_run_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        poll_url:
+          type: string
+        admin_handoff_token:
+          type: string
+        email:
+          type: string
+          format: email
+    CheckoutSettings:
+      type: object
+      properties:
+        payment_provider:
+          type: string
+          enum: [paystack, flutterwave]
+        currency:
+          type: string
+          example: NGN
+    PaymentInitializeRequest:
+      type: object
+      required: [checkout_session_id, email]
+      properties:
+        checkout_session_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        provider:
+          type: string
+          enum: [paystack, flutterwave]
+          description: Optional override; defaults to tenant payment_provider
+    PaymentInitializeResponse:
+      type: object
+      properties:
+        authorization_url:
+          type: string
+          format: uri
+        reference:
+          type: string
+    PaymentVerifyRequest:
+      type: object
+      required: [reference]
+      properties:
+        reference:
+          type: string
+        provider:
+          type: string
+          enum: [paystack, flutterwave]
+    PaymentVerifyResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [completed, failed]
+        reference:
+          type: string
+        checkout_session_id:
+          type: string
+          format: uuid
+        order_id:
+          type: string
+          format: uuid
+    PaymentProviderCredentialStatus:
+      type: object
+      properties:
+        configured:
+          type: boolean
+        masked_secret_key:
+          type: string
+          nullable: true
+        uses_platform_key:
+          type: boolean
+        webhook_hash_configured:
+          type: boolean
+    PaymentCredentialsStatus:
+      type: object
+      properties:
+        paystack:
+          $ref: '#/components/schemas/PaymentProviderCredentialStatus'
+        flutterwave:
+          allOf:
+            - $ref: '#/components/schemas/PaymentProviderCredentialStatus'
+            - type: object
+              required: [webhook_hash_configured]
+    PaymentCredentialsUpdate:
+      type: object
+      required: [provider]
+      properties:
+        provider:
+          type: string
+          enum: [paystack, flutterwave]
+        secret_key:
+          type: string
+          description: Empty string clears tenant override
+        secret_hash:
+          type: string
+          description: Flutterwave webhook verif-hash secret
+    ReturnRequestCreate:
+      type: object
+      required: [order_id, reason, lines]
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        notes:
+          type: string
+        lines:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [order_item_id, quantity]
+            properties:
+              order_item_id:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+                minimum: 1
+    GuestReturnRequestCreate:
+      type: object
+      required: [order_number, customer_email, reason, lines]
+      properties:
+        order_number:
+          type: string
+        customer_email:
+          type: string
+          format: email
+        reason:
+          type: string
+        notes:
+          type: string
+        lines:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [order_item_id, quantity]
+            properties:
+              order_item_id:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+                minimum: 1
+              restock:
+                type: boolean
