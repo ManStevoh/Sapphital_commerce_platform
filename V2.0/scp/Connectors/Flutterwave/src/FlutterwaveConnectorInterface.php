@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Connectors\Paystack;
+namespace Connectors\Flutterwave;
 
-interface PaystackConnectorInterface
+interface FlutterwaveConnectorInterface
 {
     /**
      * @param  array<string, mixed>  $payload
@@ -26,7 +26,14 @@ interface PaystackConnectorInterface
 
     /**
      * @param  array<string, mixed>  $payload
-     * @return array{event: string, reference: string, amount: int, status: string}
+     * @return array{
+     *     event: string,
+     *     reference: string,
+     *     amount: int,
+     *     status: string,
+     *     provider_case_id: string,
+     *     currency: string
+     * }
      */
     public function handleWebhook(array $payload): array;
 }

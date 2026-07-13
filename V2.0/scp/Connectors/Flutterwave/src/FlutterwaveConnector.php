@@ -2,16 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Connectors\Paystack;
+namespace Connectors\Flutterwave;
 
 use Illuminate\Support\Facades\Http;
 
-final class PaystackConnector implements PaystackConnectorInterface
+final class FlutterwaveConnector implements FlutterwaveConnectorInterface
 {
-    private const BASE_URL = 'https://api.paystack.co';
+    private const BASE_URL = 'https://api.flutterwave.com/v3';
 
     public function __construct(
         private readonly ?string $secretKeyOverride = null,
+        private readonly ?string $secretHashOverride = null,
     ) {}
 
     /**
@@ -24,21 +25,27 @@ final class PaystackConnector implements PaystackConnectorInterface
             return $this->stubInitializeResponse($payload);
         }
 
+        $amountKobo = (int) ($payload['amount'] ?? 0);
+        $reference = is_string($payload['reference'] ?? null) ? $payload['reference'] : null;
+
         $response = Http::withToken($this->secretKey())
             ->acceptJson()
             ->timeout(10)
-            ->post(self::BASE_URL.'/transaction/initialize', [
-                'email' => $payload['email'] ?? '',
-                'amount' => $payload['amount'] ?? 0,
-                'reference' => $payload['reference'] ?? null,
-                'metadata' => $payload['metadata'] ?? [],
+            ->post(self::BASE_URL.'/payments', [
+                'tx_ref' => $reference,
+                'amount' => $this->majorAmountFromKobo($amountKobo),
                 'currency' => $payload['currency'] ?? 'NGN',
+                'redirect_url' => $payload['redirect_url'] ?? config('app.url'),
+                'customer' => [
+                    'email' => $payload['email'] ?? '',
+                ],
+                'meta' => $payload['metadata'] ?? [],
             ]);
 
         if (! $response->ok()) {
             return [
-                'status' => false,
-                'message' => (string) ($response->json('message') ?? 'Paystack initialization failed.'),
+                'status' => 'error',
+                'message' => (string) ($response->json('message') ?? 'Flutterwave initialization failed.'),
             ];
         }
 
@@ -60,12 +67,12 @@ final class PaystackConnector implements PaystackConnectorInterface
         $response = Http::withToken($this->secretKey())
             ->acceptJson()
             ->timeout(10)
-            ->get(self::BASE_URL.'/transaction/verify/'.urlencode($reference));
+            ->get(self::BASE_URL.'/transactions/verify_by_reference/'.urlencode($reference));
 
         if (! $response->ok()) {
             return [
-                'status' => false,
-                'message' => (string) ($response->json('message') ?? 'Paystack verification failed.'),
+                'status' => 'error',
+                'message' => (string) ($response->json('message') ?? 'Flutterwave verification failed.'),
             ];
         }
 
@@ -87,15 +94,14 @@ final class PaystackConnector implements PaystackConnectorInterface
         $response = Http::withToken($this->secretKey())
             ->acceptJson()
             ->timeout(10)
-            ->post(self::BASE_URL.'/refund', [
-                'transaction' => $transactionReference,
-                'amount' => $amountKobo,
+            ->post(self::BASE_URL.'/transactions/'.$transactionReference.'/refund', [
+                'amount' => $this->majorAmountFromKobo($amountKobo),
             ]);
 
         if (! $response->ok()) {
             return [
-                'status' => false,
-                'message' => (string) ($response->json('message') ?? 'Paystack refund failed.'),
+                'status' => 'error',
+                'message' => (string) ($response->json('message') ?? 'Flutterwave refund failed.'),
             ];
         }
 
@@ -107,12 +113,10 @@ final class PaystackConnector implements PaystackConnectorInterface
 
     public function verifyWebhookSignature(string $payload, string $signature): bool
     {
-        $secretKey = $this->secretKey();
+        $secretHash = $this->secretHash();
 
-        if ($secretKey !== '') {
-            $computed = hash_hmac('sha512', $payload, $secretKey);
-
-            return hash_equals($computed, $signature);
+        if ($secretHash !== '') {
+            return hash_equals($secretHash, $signature);
         }
 
         if ($this->isStubMode()) {
@@ -120,10 +124,7 @@ final class PaystackConnector implements PaystackConnectorInterface
             $event = is_array($decoded) ? ($decoded['event'] ?? null) : null;
 
             return is_string($event) && in_array($event, [
-                'charge.success',
-                'charge.dispute.create',
-                'charge.dispute.remind',
-                'charge.dispute.resolve',
+                'charge.completed',
             ], true);
         }
 
@@ -132,22 +133,28 @@ final class PaystackConnector implements PaystackConnectorInterface
 
     /**
      * @param  array<string, mixed>  $payload
-     * @return array{event: string, reference: string, amount: int, status: string}
+     * @return array{
+     *     event: string,
+     *     reference: string,
+     *     amount: int,
+     *     status: string,
+     *     provider_case_id: string,
+     *     currency: string
+     * }
      */
     public function handleWebhook(array $payload): array
     {
         $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
-        $transaction = is_array($data['transaction'] ?? null) ? $data['transaction'] : [];
-        $amount = $data['amount'] ?? $transaction['amount'] ?? 0;
-        $reference = is_string($data['reference'] ?? null)
-            ? $data['reference']
-            : (is_string($transaction['reference'] ?? null) ? $transaction['reference'] : '');
-        $providerCaseId = $data['id'] ?? null;
+        $amountMajor = $data['amount'] ?? $data['charged_amount'] ?? 0;
+        $reference = is_string($data['tx_ref'] ?? null)
+            ? $data['tx_ref']
+            : (is_string($data['flw_ref'] ?? null) ? $data['flw_ref'] : '');
+        $providerCaseId = $data['id'] ?? $data['flw_ref'] ?? null;
 
         return [
             'event' => is_string($payload['event'] ?? null) ? $payload['event'] : '',
             'reference' => $reference,
-            'amount' => is_int($amount) ? $amount : (int) $amount,
+            'amount' => $this->koboFromMajor($amountMajor),
             'status' => is_string($data['status'] ?? null) ? $data['status'] : '',
             'provider_case_id' => $providerCaseId !== null ? (string) $providerCaseId : '',
             'currency' => is_string($data['currency'] ?? null) ? $data['currency'] : 'NGN',
@@ -173,9 +180,42 @@ final class PaystackConnector implements PaystackConnectorInterface
             return $this->secretKeyOverride;
         }
 
-        $secretKey = config('paystack.secret_key');
+        $secretKey = config('flutterwave.secret_key');
 
         return is_string($secretKey) ? $secretKey : '';
+    }
+
+    private function secretHash(): string
+    {
+        if ($this->secretHashOverride !== null && $this->secretHashOverride !== '') {
+            return $this->secretHashOverride;
+        }
+
+        $secretHash = config('flutterwave.secret_hash');
+
+        return is_string($secretHash) ? $secretHash : '';
+    }
+
+    private function majorAmountFromKobo(int $amountKobo): float
+    {
+        return round($amountKobo / 100, 2);
+    }
+
+    private function koboFromMajor(mixed $amount): int
+    {
+        if (is_int($amount)) {
+            return $amount * 100;
+        }
+
+        if (is_float($amount)) {
+            return (int) round($amount * 100);
+        }
+
+        if (is_string($amount) && is_numeric($amount)) {
+            return (int) round(((float) $amount) * 100);
+        }
+
+        return 0;
     }
 
     /**
@@ -186,15 +226,14 @@ final class PaystackConnector implements PaystackConnectorInterface
     {
         $reference = is_string($payload['reference'] ?? null)
             ? $payload['reference']
-            : 'stub_ref_'.uniqid();
+            : 'fw_stub_'.uniqid();
 
         return [
-            'status' => true,
-            'message' => 'Authorization URL created',
+            'status' => 'success',
+            'message' => 'Hosted payment link generated',
             'data' => [
-                'authorization_url' => 'https://checkout.paystack.com/stub',
-                'access_code' => 'stub_access_code',
-                'reference' => $reference,
+                'link' => 'https://checkout.flutterwave.com/stub',
+                'tx_ref' => $reference,
             ],
         ];
     }
@@ -205,11 +244,11 @@ final class PaystackConnector implements PaystackConnectorInterface
     private function stubVerifyResponse(string $reference): array
     {
         return [
-            'status' => true,
-            'message' => 'Verification successful',
+            'status' => 'success',
+            'message' => 'Transaction fetched successfully',
             'data' => [
-                'reference' => $reference,
-                'status' => 'success',
+                'tx_ref' => $reference,
+                'status' => 'successful',
             ],
         ];
     }
@@ -220,15 +259,13 @@ final class PaystackConnector implements PaystackConnectorInterface
     private function stubRefundResponse(string $transactionReference, int $amountKobo): array
     {
         return [
-            'status' => true,
+            'status' => 'success',
             'message' => 'Refund processed',
             'data' => [
-                'reference' => 'refund_'.substr(md5($transactionReference.$amountKobo), 0, 12),
-                'transaction' => [
-                    'reference' => $transactionReference,
-                ],
-                'amount' => $amountKobo,
-                'status' => 'processed',
+                'id' => 'refund_'.substr(md5($transactionReference.$amountKobo), 0, 12),
+                'tx_ref' => $transactionReference,
+                'amount' => $this->majorAmountFromKobo($amountKobo),
+                'status' => 'completed',
             ],
         ];
     }
