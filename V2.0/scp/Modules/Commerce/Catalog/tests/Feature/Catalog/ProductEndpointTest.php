@@ -95,4 +95,50 @@ final class ProductEndpointTest extends TestCase
                 'message' => 'Tenant context required.',
             ]);
     }
+
+    public function test_related_products_match_shared_tags(): void
+    {
+        $tenant = Tenant::query()->create([
+            'slug' => 'related-tenant-'.Str::random(8),
+            'name' => 'Related Tenant',
+            'status' => 'active',
+            'country' => 'NG',
+        ]);
+
+        $current = Product::query()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Current Phone',
+            'slug' => 'current-phone',
+            'price_kobo' => 100_000,
+            'status' => 'published',
+            'inventory_qty' => 3,
+            'tags' => ['phones', 'sale'],
+        ]);
+
+        Product::query()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Related Phone',
+            'slug' => 'related-phone',
+            'price_kobo' => 120_000,
+            'status' => 'published',
+            'inventory_qty' => 2,
+            'tags' => ['phones'],
+        ]);
+
+        Product::query()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Unrelated Item',
+            'slug' => 'unrelated-item',
+            'price_kobo' => 50_000,
+            'status' => 'published',
+            'inventory_qty' => 1,
+            'tags' => ['fashion'],
+        ]);
+
+        $this->getJson('/api/v1/commerce/catalog/products/'.$current->id.'/related', [
+            'X-Tenant-ID' => $tenant->id,
+        ])->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.slug', 'related-phone');
+    }
 }

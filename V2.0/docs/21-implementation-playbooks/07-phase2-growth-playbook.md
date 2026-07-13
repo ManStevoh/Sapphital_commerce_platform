@@ -90,8 +90,8 @@ Per [Volume 5 Ch. 03](../05-commerce-engine/03-collections-and-categories.md):
 
 - [ ] Smart collections: best sellers (30-day window), new arrivals, on sale
 - [ ] Collection scheduling (start/end dates)
-- [ ] Product tags for filtering and collection rules
-- [ ] Related products on PDP (same collection + manual override)
+- [x] Product tags for filtering and collection rules
+- [x] Related products on PDP (same collection + manual override)
 - [ ] Homepage section: "Recently viewed" for returning visitors (cookie-based)
 
 ---
