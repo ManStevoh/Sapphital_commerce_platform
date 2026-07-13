@@ -36,6 +36,7 @@ use Platform\Billing\Models\Plan;
 use Platform\Billing\Models\Subscription;
 use Platform\Identity\Enums\MerchantUserRole;
 use Platform\Identity\Models\Customer;
+use Platform\Identity\Models\CustomerAddress;
 use Platform\Identity\Models\MerchantUser;
 use Platform\Provisioning\Models\ProvisioningRun;
 use Platform\FinancialServices\Enums\DisputeStatus;
@@ -135,7 +136,10 @@ final class IsolationRecordFactory
             Customer::class => Customer::query()->create([
                 'tenant_id' => $tenantId,
                 'email' => 'customer-'.Str::random(6).'@example.com',
+                'name' => 'Isolation Customer',
+                'password' => 'password12345',
             ]),
+            CustomerAddress::class => $this->createCustomerAddress($tenantId),
             MerchantUser::class => MerchantUser::query()->create([
                 'tenant_id' => $tenantId,
                 'email' => 'merchant-'.Str::random(6).'@example.com',
@@ -216,6 +220,21 @@ final class IsolationRecordFactory
             'gift_card_id' => $card->id,
             'delta_kobo' => 500_000,
             'type' => GiftCardTransaction::TYPE_ISSUE,
+        ]);
+    }
+
+    private function createCustomerAddress(string $tenantId): CustomerAddress
+    {
+        $customer = $this->create(Customer::class, $tenantId);
+
+        return CustomerAddress::query()->create([
+            'tenant_id' => $tenantId,
+            'customer_id' => $customer->id,
+            'label' => 'Home',
+            'line1' => '12 Isolation Street',
+            'city' => 'Lagos',
+            'state' => 'Lagos',
+            'is_default' => true,
         ]);
     }
 

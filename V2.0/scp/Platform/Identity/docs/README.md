@@ -29,6 +29,13 @@ Authentication, authorization, roles, permissions, organizations, users, and tea
 
 Phase 1 login endpoints issue Sanctum personal access tokens for API simplicity.
 
+## Customer accounts (Phase 2)
+
+- `POST /api/v1/auth/customer/register` · `POST /api/v1/auth/customer/login` (tenant context)
+- `POST /api/v1/auth/customer/logout`
+- Account: `GET /api/v1/commerce/account/orders`, address book CRUD
+- `customer_addresses` table (RLS); orders optionally link `customer_id`
+
 ## Documentation
 
 | Document | Description |

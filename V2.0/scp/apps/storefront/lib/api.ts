@@ -1316,3 +1316,157 @@ export async function fetchBlogFeedXml(tenantSlug?: string): Promise<string | nu
     return null;
   }
 }
+
+export interface CustomerProfile {
+  id: string;
+  email: string;
+  name: string | null;
+  phone: string | null;
+  tenant_id: string;
+}
+
+export interface CustomerAuthResponse {
+  token: string;
+  token_type: string;
+  data: CustomerProfile;
+}
+
+export interface CustomerOrder {
+  id: string;
+  order_number: string;
+  status: string;
+  currency: string;
+  subtotal_kobo: number;
+  total_kobo: number;
+  customer_email: string | null;
+  created_at: string | null;
+  items: Array<{
+    id: string;
+    product_name: string;
+    quantity: number;
+    line_total_kobo: number;
+  }>;
+}
+
+export interface CustomerAddress {
+  id: string;
+  label: string | null;
+  line1: string;
+  city: string;
+  state: string;
+  lga: string | null;
+  phone: string | null;
+  is_default: boolean;
+}
+
+function customerHeaders(tenantId: string, token: string): HeadersInit {
+  return {
+    ...tenantHeaders(tenantId),
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+export async function customerRegister(
+  tenantId: string,
+  input: { email: string; password: string; name?: string; phone?: string },
+): Promise<CustomerAuthResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/customer/register`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  return parseJson<CustomerAuthResponse>(response);
+}
+
+export async function customerLogin(
+  tenantId: string,
+  email: string,
+  password: string,
+): Promise<CustomerAuthResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/customer/login`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+  return parseJson<CustomerAuthResponse>(response);
+}
+
+export async function customerLogout(tenantId: string, token: string): Promise<void> {
+  const response = await fetch(`${API_URL}/api/v1/auth/customer/logout`, {
+    method: 'POST',
+    headers: customerHeaders(tenantId, token),
+  });
+  if (!response.ok) {
+    await parseJson(response);
+  }
+}
+
+export async function fetchCustomerOrders(
+  tenantId: string,
+  token: string,
+): Promise<CustomerOrder[]> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/account/orders`, {
+    headers: customerHeaders(tenantId, token),
+  });
+  const result = await parseJson<{ data: CustomerOrder[] }>(response);
+  return result.data;
+}
+
+export async function fetchCustomerAddresses(
+  tenantId: string,
+  token: string,
+): Promise<CustomerAddress[]> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/account/addresses`, {
+    headers: customerHeaders(tenantId, token),
+  });
+  const result = await parseJson<{ data: CustomerAddress[] }>(response);
+  return result.data;
+}
+
+export async function createCustomerAddress(
+  tenantId: string,
+  token: string,
+  input: {
+    label?: string;
+    line1: string;
+    city: string;
+    state: string;
+    lga?: string;
+    phone?: string;
+    is_default?: boolean;
+  },
+): Promise<CustomerAddress> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/account/addresses`, {
+    method: 'POST',
+    headers: {
+      ...customerHeaders(tenantId, token),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: CustomerAddress }>(response);
+  return result.data;
+}
+
+export async function deleteCustomerAddress(
+  tenantId: string,
+  token: string,
+  addressId: string,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/account/addresses/${encodeURIComponent(addressId)}`,
+    {
+      method: 'DELETE',
+      headers: customerHeaders(tenantId, token),
+    },
+  );
+  if (!response.ok && response.status !== 204) {
+    await parseJson(response);
+  }
+}

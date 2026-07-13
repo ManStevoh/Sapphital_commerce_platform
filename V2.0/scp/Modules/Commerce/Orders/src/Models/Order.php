@@ -36,6 +36,7 @@ final class Order extends Model
      */
     protected $fillable = [
         'tenant_id',
+        'customer_id',
         'checkout_session_id',
         'order_number',
         'status',
@@ -53,6 +54,7 @@ final class Order extends Model
     {
         return [
             'tenant_id' => 'string',
+            'customer_id' => 'string',
             'checkout_session_id' => 'string',
             'subtotal_kobo' => 'integer',
             'total_kobo' => 'integer',

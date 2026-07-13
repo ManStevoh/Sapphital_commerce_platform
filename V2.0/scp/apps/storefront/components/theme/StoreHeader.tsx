@@ -39,6 +39,8 @@ export function StoreHeader({ storeName, tenantSlug, theme, navLinks = [] }: Sto
         <nav style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', flexWrap: 'wrap' }}>
           <Link href="/">Shop</Link>
           <Link href="/blog">Blog</Link>
+          <Link href="/wishlist">Wishlist</Link>
+          <Link href="/account">Account</Link>
           <Link href="/cart">Cart</Link>
           {navLinks.map((link) => (
             <Link

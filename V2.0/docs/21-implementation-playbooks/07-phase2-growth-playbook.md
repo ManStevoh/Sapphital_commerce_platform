@@ -155,9 +155,9 @@ Per [Volume 5 Ch. 13–14](../05-commerce-engine/13-subscriptions-and-gift-cards
 
 ### 4.3 Customer Accounts (Enhanced)
 
-- [ ] Customer registration and login on storefront
-- [ ] Order history and address book
-- [ ] Wishlist (localStorage Phase 2; synced Phase 3)
+- [x] Customer registration and login on storefront
+- [x] Order history and address book
+- [x] Wishlist (localStorage Phase 2; synced Phase 3)
 
 ---
 
@@ -265,7 +265,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 | 4 | Smart collections | §2 | ☑ |
 | 5 | AI description + SEO gen | Gate §3 | ☑ |
 | 6 | Digital products + gift cards | §4 | ☑ |
-| 7 | Customer accounts | §4 | ☐ |
+| 7 | Customer accounts | §4 | ☑ |
 | 8 | Infra Phase 2 topology | Gate §5 | ☐ |
 | 9 | Outbox pattern | §5.2 | ☐ |
 | 10 | Custom domains | §5.3 | ☐ |

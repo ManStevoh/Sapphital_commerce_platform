@@ -29,6 +29,7 @@ return [
         Platform\Billing\Models\Invoice::class,
         Platform\Billing\Models\Subscription::class,
         Platform\Identity\Models\Customer::class,
+        Platform\Identity\Models\CustomerAddress::class,
         Platform\Identity\Models\MerchantUser::class,
         Platform\FinancialServices\Models\Refund::class,
         Platform\FinancialServices\Models\Dispute::class,

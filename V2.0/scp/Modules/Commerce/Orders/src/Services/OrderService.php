@@ -15,6 +15,7 @@ use Modules\Commerce\Checkout\Models\CheckoutSession;
 use Modules\Commerce\Checkout\Services\GiftCardService;
 use Modules\Commerce\Orders\Models\Order;
 use Modules\Commerce\Orders\Models\OrderItem;
+use Platform\Identity\Models\Customer;
 
 final class OrderService
 {
@@ -58,10 +59,12 @@ final class OrderService
 
         $subtotalKobo = (int) $cart->items->sum('line_total_kobo');
         $totalKobo = (int) ($session->total_kobo ?? $subtotalKobo);
+        $customerId = $this->resolveCustomerId($session);
 
-        return DB::transaction(function () use ($session, $cart, $productNames, $downloadLimits, $subtotalKobo, $totalKobo): Order {
+        return DB::transaction(function () use ($session, $cart, $productNames, $downloadLimits, $subtotalKobo, $totalKobo, $customerId): Order {
             $order = Order::query()->create([
                 'tenant_id' => $session->tenant_id,
+                'customer_id' => $customerId,
                 'checkout_session_id' => $session->id,
                 'order_number' => $this->generateOrderNumber($session->tenant_id),
                 'status' => Order::STATUS_PENDING,
@@ -169,5 +172,19 @@ final class OrderService
         );
 
         return $orderNumber;
+    }
+
+    private function resolveCustomerId(CheckoutSession $session): ?string
+    {
+        $email = $session->customer_email;
+
+        if (! is_string($email) || $email === '') {
+            return null;
+        }
+
+        return Customer::query()
+            ->where('tenant_id', $session->tenant_id)
+            ->whereRaw('LOWER(email) = ?', [strtolower($email)])
+            ->value('id');
     }
 }

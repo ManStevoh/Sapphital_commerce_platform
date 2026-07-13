@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { TrackRecentlyViewed } from '@/components/TrackRecentlyViewed';
+import { WishlistButton } from '@/components/WishlistButton';
 import { fetchProduct, fetchRelatedProducts, formatNgn } from '@/lib/api';
 
 interface ProductDetailPageProps {
@@ -92,6 +93,9 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           tenantId={product.tenant_id}
           disabled={!inStock}
         />
+        <div style={{ marginTop: 12 }}>
+          <WishlistButton productId={product.id} />
+        </div>
 
         <TrackRecentlyViewed
           productId={product.id}
