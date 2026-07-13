@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Platform\Billing\Enums\SubscriptionStatus;
+use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
 final class Subscription extends Model
 {
+    use BelongsToTenant;
     use HasUuids;
 
     public $incrementing = false;
@@ -27,6 +29,7 @@ final class Subscription extends Model
         'plan_id',
         'status',
         'trial_ends_at',
+        'past_due_at',
         'current_period_end',
     ];
 
@@ -40,6 +43,7 @@ final class Subscription extends Model
             'plan_id' => 'string',
             'status' => SubscriptionStatus::class,
             'trial_ends_at' => 'datetime',
+            'past_due_at' => 'datetime',
             'current_period_end' => 'datetime',
         ];
     }

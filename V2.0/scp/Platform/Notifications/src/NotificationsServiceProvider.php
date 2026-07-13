@@ -11,7 +11,8 @@ final class NotificationsServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->singleton(Services\OrderConfirmationNotifier::class);
+        $this->app->singleton(Services\RefundConfirmationNotifier::class);
     }
 
     public function boot(): void

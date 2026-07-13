@@ -14,7 +14,7 @@ final class SignupTest extends TestCase
     {
         $response = $this->postJson('/api/v1/signup', [
             'email' => 'merchant@example.com',
-            'password' => 'password123',
+            'password' => 'securepassword12',
             'store_name' => 'Lagos Tech Shop',
             'plan_slug' => 'starter',
         ]);
@@ -62,7 +62,7 @@ final class SignupTest extends TestCase
     {
         $response = $this->postJson('/api/v1/signup', [
             'email' => 'merchant@example.com',
-            'password' => 'password123',
+            'password' => 'securepassword12',
             'store_name' => 'Test Store',
             'plan_slug' => 'nonexistent',
         ]);

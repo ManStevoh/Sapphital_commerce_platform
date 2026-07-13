@@ -70,6 +70,8 @@ final class PaystackWebhookTest extends PlatformTestCase
         $first->assertOk()->assertJson(['received' => true]);
         $second->assertOk()->assertJson(['received' => true]);
 
+        $this->assertDatabaseCount('webhook_events', 1);
+
         $session = CheckoutSession::query()
             ->where('paystack_reference', $reference)
             ->firstOrFail();
@@ -81,6 +83,28 @@ final class PaystackWebhookTest extends PlatformTestCase
                 ->where('checkout_session_id', $session->id)
                 ->count(),
         );
+    }
+
+    public function test_webhook_rejects_amount_mismatch(): void
+    {
+        $tenant = $this->createTenant();
+        $reference = $this->initializeCheckoutPayment($tenant);
+
+        $response = $this->postJson(
+            '/api/v1/webhooks/paystack',
+            $this->paystackWebhookPayload($reference, 1_000_000),
+        );
+
+        $response->assertUnprocessable()
+            ->assertJsonFragment([
+                'message' => 'Webhook payment amount does not match checkout total.',
+            ]);
+
+        $this->assertDatabaseHas('checkout_sessions', [
+            'tenant_id' => $tenant->id,
+            'paystack_reference' => $reference,
+            'status' => CheckoutSession::STATUS_PENDING,
+        ]);
     }
 
     /**
@@ -104,18 +128,14 @@ final class PaystackWebhookTest extends PlatformTestCase
 
         $checkout = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => $cart->id,
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $sessionId = $checkout->json('data.session_id');
 
         $initialize = $this->postJson('/api/v1/platform/financial-services/payments/initialize', [
             'checkout_session_id' => $sessionId,
             'email' => 'buyer@example.com',
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         return (string) $initialize->json('data.reference');
     }

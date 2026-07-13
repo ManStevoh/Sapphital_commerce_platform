@@ -28,6 +28,7 @@ final class PaymentController
         $validated = $request->validate([
             'checkout_session_id' => ['required', 'uuid'],
             'email' => ['required', 'email'],
+            'provider' => ['sometimes', 'string', 'in:paystack,flutterwave'],
         ]);
 
         try {
@@ -35,6 +36,7 @@ final class PaymentController
                 $tenantId,
                 $validated['checkout_session_id'],
                 $validated['email'],
+                $validated['provider'] ?? null,
             );
         } catch (ModelNotFoundException) {
             return response()->json([
@@ -62,12 +64,15 @@ final class PaymentController
 
         $validated = $request->validate([
             'reference' => ['required', 'string', 'max:255'],
+            'provider' => ['sometimes', 'string', 'in:paystack,flutterwave'],
         ]);
 
         try {
             $result = $this->paymentOrchestrator->verifyCheckoutPayment(
                 $tenantId,
                 $validated['reference'],
+                null,
+                $validated['provider'] ?? null,
             );
         } catch (ModelNotFoundException) {
             return response()->json([

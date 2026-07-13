@@ -16,4 +16,9 @@ interface PaymentGatewayInterface
      * @return array<string, mixed>
      */
     public function verifyPayment(string $reference): array;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function refundPayment(string $transactionReference, int $amountKobo): array;
 }

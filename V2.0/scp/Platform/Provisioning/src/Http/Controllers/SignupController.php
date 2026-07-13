@@ -6,6 +6,7 @@ namespace Platform\Provisioning\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Platform\Provisioning\Services\SignupService;
 
@@ -19,7 +20,7 @@ final class SignupController
     {
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:8'],
+            'password' => ['required', 'string', Password::default()],
             'store_name' => ['required', 'string', 'max:255'],
             'plan_slug' => ['required', 'string', 'max:64'],
         ]);
@@ -42,6 +43,8 @@ final class SignupController
             'provisioning_run_id' => $result['provisioning_run_id'],
             'status' => $result['status'],
             'poll_url' => '/api/v1/provisioning/'.$result['tenant_id'].'/status',
+            'admin_handoff_token' => $result['admin_handoff_token'],
+            'email' => $result['email'],
         ], 202);
     }
 }

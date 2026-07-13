@@ -29,4 +29,12 @@ final class PaystackPaymentGateway implements PaymentGatewayInterface
     {
         return $this->connector->verifyTransaction($reference);
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function refundPayment(string $transactionReference, int $amountKobo): array
+    {
+        return $this->connector->refundTransaction($transactionReference, $amountKobo);
+    }
 }

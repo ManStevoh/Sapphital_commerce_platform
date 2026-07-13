@@ -12,7 +12,7 @@ final class ProvisioningStatusTest extends TestCase
     {
         $signup = $this->postJson('/api/v1/signup', [
             'email' => 'owner@example.com',
-            'password' => 'password123',
+            'password' => 'securepassword12',
             'store_name' => 'Status Test Store',
             'plan_slug' => 'starter',
         ]);

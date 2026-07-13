@@ -49,6 +49,22 @@ DB::statement('SET app.current_tenant_id = ?', [$tenantId]);
 
 On SQLite (local package tests), the session variable is skipped; `tenant_id` is still attached to the request attributes.
 
+### Application-level scoping
+
+All manifest models use `Platform\Tenancy\Models\Concerns\BelongsToTenant`:
+
+- When `TenantContext::id()` is set (via `X-Tenant-ID` / subdomain middleware), Eloquent queries auto-filter by `tenant_id`.
+- When context is absent (console jobs, webhooks, platform ops), the scope is a no-op — RLS still applies on PostgreSQL.
+- `creating` hooks auto-assign `tenant_id` from context when not explicitly set.
+
+```php
+use Platform\Tenancy\Support\TenantContext;
+
+TenantContext::set($tenantId); // tests / jobs
+// ...
+TenantContext::clear();
+```
+
 ### Migrations
 
 RLS is applied in `2026_07_12_000002_enable_row_level_security_on_tenants_table.php`. The migration is a no-op on SQLite (local/package tests); run against PostgreSQL in CI and production.

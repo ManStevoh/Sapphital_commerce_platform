@@ -10,16 +10,24 @@ use Illuminate\Support\Str;
 use Platform\Billing\Enums\SubscriptionStatus;
 use Platform\Billing\Models\Plan;
 use Platform\Billing\Models\Subscription;
+use Platform\Identity\Services\SignupHandoffService;
 use Platform\Tenancy\Models\Tenant;
 
 final class SignupService
 {
     public function __construct(
         private readonly ProvisionTenantService $provisionTenantService,
+        private readonly SignupHandoffService $handoff,
     ) {}
 
     /**
-     * @return array{tenant_id: string, provisioning_run_id: string, status: string}
+     * @return array{
+     *     tenant_id: string,
+     *     provisioning_run_id: string,
+     *     status: string,
+     *     admin_handoff_token: string,
+     *     email: string
+     * }
      */
     public function signup(string $email, string $password, string $storeName, string $planSlug): array
     {
@@ -34,7 +42,7 @@ final class SignupService
                 'country' => 'NG',
             ]);
 
-            $this->createMerchantUser($tenant->id, $email, $password);
+            $merchantUserId = $this->createMerchantUser($tenant->id, $email, $password);
 
             Subscription::query()->create([
                 'tenant_id' => $tenant->id,
@@ -49,6 +57,8 @@ final class SignupService
                 'tenant_id' => $tenant->id,
                 'provisioning_run_id' => $run->id,
                 'status' => 'provisioning',
+                'admin_handoff_token' => $this->handoff->create($merchantUserId, $tenant->id),
+                'email' => $email,
             ];
         });
     }
@@ -72,21 +82,23 @@ final class SignupService
         return $slug;
     }
 
-    private function createMerchantUser(string $tenantId, string $email, string $password): void
+    private function createMerchantUser(string $tenantId, string $email, string $password): string
     {
         if (class_exists(\Platform\Identity\Models\MerchantUser::class)) {
-            \Platform\Identity\Models\MerchantUser::query()->create([
+            $user = \Platform\Identity\Models\MerchantUser::query()->create([
                 'tenant_id' => $tenantId,
                 'email' => $email,
                 'password' => $password,
                 'role' => \Platform\Identity\Enums\MerchantUserRole::Owner,
             ]);
 
-            return;
+            return (string) $user->id;
         }
 
+        $id = (string) Str::uuid();
+
         DB::table('merchant_users')->insert([
-            'id' => (string) Str::uuid(),
+            'id' => $id,
             'tenant_id' => $tenantId,
             'email' => $email,
             'password' => Hash::make($password),
@@ -94,5 +106,7 @@ final class SignupService
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        return $id;
     }
 }

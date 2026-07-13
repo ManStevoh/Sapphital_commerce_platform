@@ -23,6 +23,7 @@ return new class extends Migration
         'subscriptions',
         'customers',
         'merchant_users',
+        'custom_domains',
     ];
 
     public function up(): void

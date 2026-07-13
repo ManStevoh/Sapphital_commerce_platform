@@ -9,9 +9,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Platform\Identity\Enums\MerchantUserRole;
+use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
 final class MerchantUser extends Authenticatable
 {
+    use BelongsToTenant;
     use HasApiTokens;
     use HasUuids;
     use Notifiable;

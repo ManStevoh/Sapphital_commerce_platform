@@ -8,12 +8,12 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Modules\Commerce\Checkout\Models\CheckoutSession;
-use Platform\FinancialServices\Contracts\PaymentGatewayInterface;
 
 final class PaymentOrchestrator
 {
     public function __construct(
-        private readonly PaymentGatewayInterface $gateway,
+        private readonly PaymentGatewayResolver $gatewayResolver,
+        private readonly TenantPaymentProviderService $tenantPaymentProvider,
     ) {}
 
     /**
@@ -26,6 +26,7 @@ final class PaymentOrchestrator
         string $tenantId,
         string $checkoutSessionId,
         string $email,
+        ?string $provider = null,
     ): array {
         $session = CheckoutSession::query()
             ->where('tenant_id', $tenantId)
@@ -39,8 +40,10 @@ final class PaymentOrchestrator
         }
 
         $reference = 'scp_'.$session->id.'_'.Str::lower(Str::random(8));
+        $resolvedProvider = $provider ?? $this->tenantPaymentProvider->forTenant($tenantId);
+        $gateway = $this->gatewayResolver->resolveForTenant($tenantId, $resolvedProvider);
 
-        $response = $this->gateway->initializePayment([
+        $response = $gateway->initializePayment([
             'email' => $email,
             'amount' => $session->total_kobo,
             'reference' => $reference,
@@ -88,14 +91,29 @@ final class PaymentOrchestrator
      * @throws ModelNotFoundException
      * @throws ValidationException
      */
-    public function verifyCheckoutPayment(string $tenantId, string $reference): array
-    {
+    public function verifyCheckoutPayment(
+        string $tenantId,
+        string $reference,
+        ?int $webhookAmountKobo = null,
+        ?string $provider = null,
+    ): array {
         $session = CheckoutSession::query()
             ->where('tenant_id', $tenantId)
             ->where('paystack_reference', $reference)
             ->firstOrFail();
 
-        $response = $this->gateway->verifyPayment($reference);
+        if ($webhookAmountKobo !== null && $webhookAmountKobo !== $session->total_kobo) {
+            throw ValidationException::withMessages([
+                'reference' => ['Webhook payment amount does not match checkout total.'],
+            ]);
+        }
+
+        $gateway = $this->gatewayResolver->resolveForTenant(
+            $tenantId,
+            $provider ?? $this->tenantPaymentProvider->forTenant($tenantId),
+        );
+
+        $response = $gateway->verifyPayment($reference);
 
         if (! ($response['status'] ?? false)) {
             throw ValidationException::withMessages([

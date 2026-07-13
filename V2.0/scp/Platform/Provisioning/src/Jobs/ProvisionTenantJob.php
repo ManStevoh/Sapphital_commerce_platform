@@ -69,9 +69,9 @@ final class ProvisionTenantJob implements ShouldQueue
             ];
 
             $sampleProducts = [
-                ['name' => 'Sample Product 1', 'price_kobo' => 500_000],
-                ['name' => 'Sample Product 2', 'price_kobo' => 1_200_000],
-                ['name' => 'Sample Product 3', 'price_kobo' => 2_500_000],
+                ['name' => 'Sample Product 1', 'price_kobo' => 500_000, 'inventory_qty' => 10],
+                ['name' => 'Sample Product 2', 'price_kobo' => 1_200_000, 'inventory_qty' => 10],
+                ['name' => 'Sample Product 3', 'price_kobo' => 2_500_000, 'inventory_qty' => 0],
             ];
 
             foreach ($sampleProducts as $index => $sample) {
@@ -81,7 +81,7 @@ final class ProvisionTenantJob implements ShouldQueue
                     'slug' => Str::slug($sample['name']).'-'.($index + 1),
                     'price_kobo' => $sample['price_kobo'],
                     'status' => 'published',
-                    'inventory_qty' => 10,
+                    'inventory_qty' => $sample['inventory_qty'],
                 ]);
             }
 
@@ -116,7 +116,15 @@ final class ProvisionTenantJob implements ShouldQueue
 
             Tenant::query()
                 ->whereKey($run->tenant_id)
-                ->update(['status' => 'trial']);
+                ->update([
+                    'status' => 'trial',
+                    'settings' => [
+                        'currency' => 'NGN',
+                        'timezone' => 'Africa/Lagos',
+                        'return_window_days' => 14,
+                        'payment_provider' => 'paystack',
+                    ],
+                ]);
 
             $run->update([
                 'status' => ProvisioningRunStatus::Completed,

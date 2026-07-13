@@ -21,9 +21,7 @@ final class PaymentFlowTest extends PlatformTestCase
 
         $checkout = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => $cart->id,
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $checkout->assertCreated()
             ->assertJsonPath('data.status', 'pending')
@@ -34,9 +32,7 @@ final class PaymentFlowTest extends PlatformTestCase
         $initialize = $this->postJson('/api/v1/platform/financial-services/payments/initialize', [
             'checkout_session_id' => $sessionId,
             'email' => 'buyer@example.com',
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $initialize->assertOk()
             ->assertJsonStructure([
@@ -61,9 +57,7 @@ final class PaymentFlowTest extends PlatformTestCase
 
         $verify = $this->postJson('/api/v1/platform/financial-services/payments/verify', [
             'reference' => $reference,
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $verify->assertOk()
             ->assertJsonPath('data.status', CheckoutSession::STATUS_COMPLETED)
@@ -83,7 +77,7 @@ final class PaymentFlowTest extends PlatformTestCase
         $response = $this->postJson('/api/v1/platform/financial-services/payments/initialize', [
             'checkout_session_id' => (string) Str::uuid(),
             'email' => 'buyer@example.com',
-        ]);
+        ], $this->idempotencyHeaders());
 
         $response->assertForbidden()
             ->assertJson([
@@ -99,26 +93,20 @@ final class PaymentFlowTest extends PlatformTestCase
 
         $checkout = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => $cart->id,
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $sessionId = $checkout->json('data.session_id');
 
         $initialize = $this->postJson('/api/v1/platform/financial-services/payments/initialize', [
             'checkout_session_id' => $sessionId,
             'email' => 'buyer@example.com',
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $reference = $initialize->json('data.reference');
 
         $verify = $this->postJson('/api/v1/platform/financial-services/payments/verify', [
             'reference' => $reference,
-        ], [
-            'X-Tenant-ID' => $otherTenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($otherTenant->id));
 
         $verify->assertNotFound()
             ->assertJson([

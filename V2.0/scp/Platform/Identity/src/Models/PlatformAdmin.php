@@ -28,6 +28,8 @@ final class PlatformAdmin extends Authenticatable
         'email',
         'password',
         'mfa_secret',
+        'mfa_confirmed_at',
+        'mfa_backup_codes',
     ];
 
     /**
@@ -36,6 +38,7 @@ final class PlatformAdmin extends Authenticatable
     protected $hidden = [
         'password',
         'mfa_secret',
+        'mfa_backup_codes',
     ];
 
     /**
@@ -46,6 +49,8 @@ final class PlatformAdmin extends Authenticatable
         return [
             'password' => 'hashed',
             'mfa_secret' => 'encrypted',
+            'mfa_confirmed_at' => 'datetime',
+            'mfa_backup_codes' => 'encrypted:array',
         ];
     }
 }

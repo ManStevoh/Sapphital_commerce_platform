@@ -7,9 +7,11 @@ namespace Platform\Identity\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
 final class Customer extends Authenticatable
 {
+    use BelongsToTenant;
     use HasUuids;
     use Notifiable;
 

@@ -20,9 +20,16 @@ final class TenancyServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Console\GenerateIsolationTestsCommand::class,
+            ]);
+        }
+
         /** @var Router $router */
         $router = $this->app->make(Router::class);
         $router->aliasMiddleware('tenant.context', SetTenantContext::class);
+        $router->aliasMiddleware('idempotency', Middleware\EnsureIdempotency::class);
 
         Route::prefix('api')
             ->middleware('api')

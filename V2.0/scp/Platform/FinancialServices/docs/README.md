@@ -9,10 +9,13 @@
 
 Financial Services Layer (FSL) — payment intents, ledger, gateway orchestration, and money movement primitives consumed by Commerce and Marketplace.
 
-## Sprint 0 Scope
+## Phase 1 Scope (Nigeria GA)
 
-- Package scaffold with health endpoint
-- No payment flows yet — Phase 1.11
+- Paystack payment initialize / verify (storefront checkout)
+- Webhook handling with signature validation and deduplication
+- Missed webhook recovery: `scp:reconcile-pending-payments`
+- Nightly audit: `scp:reconcile-nightly`
+- Merchant refunds: `POST /api/v1/commerce/orders/{id}/refund` (full or partial, idempotent)
 
 ## References
 

@@ -7,9 +7,11 @@ namespace Platform\Billing\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Platform\Billing\Enums\InvoiceStatus;
+use Platform\Tenancy\Models\Concerns\BelongsToTenant;
 
 final class Invoice extends Model
 {
+    use BelongsToTenant;
     use HasUuids;
 
     public $incrementing = false;
