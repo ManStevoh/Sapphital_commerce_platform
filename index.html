@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>SAPPHITAL Commerce Platform — Docs</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="Engineering documentation for the SAPPHITAL Commerce Platform (SCP)" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+  <style>
+    :root {
+      --theme-color: #0a4d5c;
+    }
+    .sidebar > h1.app-name {
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .sidebar-nav > ul > li > strong {
+      display: block;
+      margin-top: 0.85em;
+      margin-bottom: 0.25em;
+      font-size: 0.78em;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #5c6b73;
+      font-weight: 600;
+    }
+    .markdown-section {
+      max-width: 920px;
+    }
+    .markdown-section table {
+      display: table;
+      width: 100%;
+    }
+    .markdown-section .mermaid {
+      text-align: center;
+      margin: 1.5em 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">Loading documentation…</div>
+  <script>
+    window.$docsify = {
+      name: 'SAPPHITAL Commerce',
+      nameLink: '#/',
+      repo: 'ManStevoh/Sapphital_commerce_platform',
+      homepage: 'README.md',
+      basePath: 'V2.0/docs/',
+      loadSidebar: true,
+      autoHeader: false,
+      subMaxLevel: 2,
+      auto2top: true,
+      relativePath: true,
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md',
+      },
+      search: {
+        paths: 'auto',
+        placeholder: 'Search docs',
+        noData: 'No results',
+        depth: 4,
+      },
+      pagination: {
+        previousText: 'Previous',
+        nextText: 'Next',
+        crossChapter: true,
+        crossChapterText: true,
+      },
+      copyCode: {
+        buttonText: 'Copy',
+        errorText: 'Error',
+        successText: 'Copied',
+      },
+      plugins: [
+        function (hook) {
+          hook.doneEach(function () {
+            if (typeof mermaid === 'undefined') return;
+            var nodes = document.querySelectorAll(
+              '.markdown-section pre[data-lang="mermaid"], .markdown-section code.lang-mermaid'
+            );
+            nodes.forEach(function (node, i) {
+              var pre = node.tagName === 'CODE' ? node.parentElement : node;
+              var code = node.tagName === 'CODE' ? node : node.querySelector('code');
+              if (!code || pre.getAttribute('data-processed')) return;
+              var graph = code.textContent;
+              var host = document.createElement('div');
+              host.className = 'mermaid';
+              host.textContent = graph;
+              pre.replaceWith(host);
+            });
+            mermaid.run({ querySelector: '.markdown-section .mermaid' });
+          });
+        },
+      ],
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral', securityLevel: 'loose' });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/docsify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify@4/lib/plugins/search.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2/dist/docsify-copy-code.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-php.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-sql.min.js"></script>
+</body>
+</html>
