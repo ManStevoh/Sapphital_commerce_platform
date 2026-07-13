@@ -13,11 +13,13 @@ When using the Shell tool, **always run commands in the background** unless the 
 - Use `Await` to poll for completion when you need results before continuing.
 - Long-running commands (tests, builds, installs, servers): always `block_until_ms: 0`, then `Await` with an appropriate timeout pattern.
 
-## Tests
+## Tests (mandatory background)
 
-- Run `composer test`, `phpunit`, `npm test`, Playwright, and CI-equivalent commands **in background first**.
-- Continue other work while tests run; poll with `Await` before reporting pass/fail to the user.
-- Do not ask the user to click "Run in background" — background is the default.
+- Run `composer test`, `vendor/bin/phpunit`, `php artisan test`, `npm test`, Playwright, and any CI-equivalent test command **in background** (`block_until_ms: 0`).
+- Never block the shell waiting for the full suite unless the user explicitly requests foreground execution.
+- Poll with `Await` (pattern: `OK (`, `FAILURES!`, or `ERRORS!`) before reporting results or declaring work complete.
+- Continue coding, reviewing, or fixing while tests run; do not idle waiting for completion.
+- Do not ask the user to click "Run in background" — background is the default for all test runs.
 
 ## Exceptions (foreground OK)
 

@@ -34,10 +34,19 @@ Standards: [Engineering Standards §6–7](V2.0/docs/00-meta/engineering-standar
 
 ## Before finishing a task
 
-1. Run tests for touched packages (`php artisan test`, targeted Pest, Vitest as applicable)
-2. If tests fail → fix code or fix tests to match spec — never skip
+1. Run tests for touched packages (`composer test`, targeted PHPUnit, Vitest as applicable) — **in background** (see `.cursor/rules/background-commands-default.mdc`)
+2. Poll with `Await` before reporting pass/fail; fix failures before finishing
 3. Verify the user flow end-to-end when changing a feature (manual or E2E if available)
 4. Confirm no new PHPStan/Pint/ESLint violations in changed files
+
+## Test execution (background required)
+
+- **Always** run `composer test`, `vendor/bin/phpunit`, Playwright, and CI-equivalent commands with `block_until_ms: 0` (background).
+- Continue implementation or other work while tests run; use `Await` with a completion pattern (`OK (`, `FAILURES!`, `ERRORS!`) before marking work done.
+- Report final pass/fail counts from the terminal output file — do not ask the user to click "Run in background".
+- Foreground tests only when the user explicitly says "wait for output", "run in foreground", or "block until done".
+
+See `.cursor/rules/background-commands-default.mdc` for Shell defaults.
 
 ## Build & install commands
 
@@ -49,7 +58,7 @@ Forbidden without explicit request:
 - Docusaurus build or dev server
 - `composer install` (unless user asked to set up dependencies)
 
-Allowed: `php artisan test`, `./vendor/bin/pest`, targeted lint on changed files, reading/running single test files.
+Allowed: `composer test`, `vendor/bin/phpunit`, targeted lint on changed files, reading/running single test files — **background by default** (see `background-commands-default.mdc`).
 
 See `.cursor/rules/no-npm-build.mdc`.
 
