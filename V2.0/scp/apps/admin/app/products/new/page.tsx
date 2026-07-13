@@ -55,6 +55,10 @@ export default function NewProductPage() {
       price_kobo: priceKobo,
       status,
       inventory_qty: parseInt(inventoryQty, 10) || 0,
+      tags: tagsInput
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter(Boolean),
     };
 
     if (slug.trim()) {
@@ -127,6 +131,12 @@ export default function NewProductPage() {
             min="0"
             value={inventoryQty}
             onChange={(e) => setInventoryQty(e.target.value)}
+          />
+          <Input
+            label="Tags (comma-separated)"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            placeholder="sale, electronics"
           />
 
           {error && <Alert>{error}</Alert>}
