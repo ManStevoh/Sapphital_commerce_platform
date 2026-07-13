@@ -44,6 +44,7 @@ export default function EditProductPage() {
         setPriceNgn((product.price_kobo / 100).toFixed(2));
         setStatus(product.status);
         setInventoryQty(String(product.inventory_qty));
+        setTagsInput((product.tags ?? []).join(', '));
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : 'Failed to load product.');
@@ -79,6 +80,10 @@ export default function EditProductPage() {
       price_kobo: priceKobo,
       status,
       inventory_qty: parseInt(inventoryQty, 10) || 0,
+      tags: tagsInput
+        .split(',')
+        .map((tag) => tag.trim())
+        .filter(Boolean),
     };
 
     try {
@@ -151,6 +156,12 @@ export default function EditProductPage() {
             min="0"
             value={inventoryQty}
             onChange={(e) => setInventoryQty(e.target.value)}
+          />
+          <Input
+            label="Tags (comma-separated)"
+            value={tagsInput}
+            onChange={(e) => setTagsInput(e.target.value)}
+            placeholder="sale, electronics"
           />
 
           {error && <Alert>{error}</Alert>}
