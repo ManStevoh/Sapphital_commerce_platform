@@ -6,7 +6,6 @@ namespace Tests\Feature\Launch;
 
 use Illuminate\Support\Str;
 use Modules\Commerce\Catalog\Models\Product;
-use Platform\Identity\Models\PlatformAdmin;
 use Tests\Feature\PlatformTestCase;
 
 /**
@@ -112,10 +111,10 @@ final class NigeriaGaFlowTest extends PlatformTestCase
 
         $checkout = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => $cartId,
-        ], [
-            'X-Tenant-ID' => $tenantId,
-            'X-Session-ID' => $sessionId,
-        ]);
+        ], array_merge(
+            $this->tenantMoneyHeaders($tenantId),
+            ['X-Session-ID' => $sessionId],
+        ));
 
         $checkout->assertCreated();
         $checkoutSessionId = $checkout->json('data.session_id');
@@ -124,9 +123,7 @@ final class NigeriaGaFlowTest extends PlatformTestCase
         $initialize = $this->postJson('/api/v1/platform/financial-services/payments/initialize', [
             'checkout_session_id' => $checkoutSessionId,
             'email' => 'buyer@lagos-tech.test',
-        ], [
-            'X-Tenant-ID' => $tenantId,
-        ]);
+        ], $this->tenantMoneyHeaders($tenantId));
 
         $initialize->assertOk()
             ->assertJsonStructure(['data' => ['authorization_url', 'reference']]);
@@ -135,9 +132,7 @@ final class NigeriaGaFlowTest extends PlatformTestCase
 
         $verify = $this->postJson('/api/v1/platform/financial-services/payments/verify', [
             'reference' => $reference,
-        ], [
-            'X-Tenant-ID' => $tenantId,
-        ]);
+        ], $this->tenantMoneyHeaders($tenantId));
 
         $verify->assertOk()
             ->assertJsonPath('data.status', 'completed')
@@ -180,18 +175,10 @@ final class NigeriaGaFlowTest extends PlatformTestCase
         ]);
 
         // 9. Platform admin lists tenant (ops visibility)
-        PlatformAdmin::query()->create([
-            'email' => 'ops@sapphital.test',
-            'password' => 'platform-ops-secret',
-        ]);
+        $opsAdmin = $this->createPlatformAdmin('ops@sapphital.test', 'platform-ops-secret');
+        $this->enrollPlatformAdminMfa($opsAdmin);
 
-        $adminLogin = $this->postJson('/api/v1/auth/platform/login', [
-            'email' => 'ops@sapphital.test',
-            'password' => 'platform-ops-secret',
-        ]);
-
-        $adminLogin->assertOk();
-        $adminToken = $adminLogin->json('token');
+        $adminToken = $this->loginPlatformAdmin('ops@sapphital.test', 'platform-ops-secret');
         $this->assertNotEmpty($adminToken);
 
         $tenants = $this->getJson('/api/v1/platform/tenants', [

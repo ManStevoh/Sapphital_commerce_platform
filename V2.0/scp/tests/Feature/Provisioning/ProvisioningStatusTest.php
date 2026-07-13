@@ -13,7 +13,7 @@ final class ProvisioningStatusTest extends PlatformTestCase
     {
         $signup = $this->postJson('/api/v1/signup', [
             'email' => 'status@example.com',
-            'password' => 'password123',
+            'password' => 'securepassword12',
             'store_name' => 'Status Shop',
             'plan_slug' => 'starter',
         ]);

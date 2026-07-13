@@ -62,7 +62,8 @@ jobs:
           extensions: bcmath, ctype, curl, dom, fileinfo, json, mbstring, openssl, pdo, pdo_pgsql, pgsql, redis, tokenizer, xml, zip
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: php artisan migrate --force
-      - run: php artisan serve --host=127.0.0.1 --port=8000 &
+      - run: php artisan scp:generate-isolation-tests --check
+      - run: QUEUE_CONNECTION=sync php artisan serve --host=127.0.0.1 --port=8000 &
       - run: sleep 3
       - uses: actions/setup-node@v4
         with:
@@ -70,26 +71,85 @@ jobs:
       - run: bash e2e/scripts/run-e2e-api.sh
         env:
           BASE_URL: http://127.0.0.1:8000
+          QUEUE_CONNECTION: sync
 
-  # Future: e2e job (Playwright UI) — run after storefront + marketing apps are CI-ready.
-  # Requires: npm install in e2e/, playwright browsers, webServer or running apps.
-  # See e2e/README.md and e2e/playwright.config.ts (webServer block commented).
-  #
-  # e2e:
-  #   name: E2E — Playwright UI (Nigeria GA)
-  #   needs: php
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: "20"
-  #     - run: npm ci
-  #       working-directory: e2e
-  #     - run: npx playwright install --with-deps chromium
-  #       working-directory: e2e
-  #     - run: npx playwright test nigeria-ga.spec.ts
-  #       working-directory: e2e
+  e2e-playwright:
+    name: E2E — Playwright (API + UI smoke)
+    needs: php
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: scp
+          POSTGRES_PASSWORD: scp
+          POSTGRES_DB: scp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U scp -d scp_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: bcmath, ctype, curl, dom, fileinfo, json, mbstring, openssl, pdo, pdo_pgsql, pgsql, redis, tokenizer, xml, zip
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: php artisan migrate --force
+      - run: QUEUE_CONNECTION=sync php artisan serve --host=127.0.0.1 --port=8000 &
+      - run: sleep 3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install --no-save @playwright/test@^1.52.0
+        working-directory: e2e
+      - run: npx playwright install --with-deps chromium
+        working-directory: e2e
+      - run: npx playwright test nigeria-ga-api.spec.ts
+        working-directory: e2e
+        env:
+          BASE_URL: http://127.0.0.1:8000
+
+  e2e-ui:
+    name: E2E — Playwright UI (Nigeria GA)
+    needs: php
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: scp
+          POSTGRES_PASSWORD: scp
+          POSTGRES_DB: scp_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U scp -d scp_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: bcmath, ctype, curl, dom, fileinfo, json, mbstring, openssl, pdo, pdo_pgsql, pgsql, redis, tokenizer, xml, zip
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: php artisan migrate --force
+      - run: QUEUE_CONNECTION=sync php artisan serve --host=127.0.0.1 --port=8000 &
+      - run: sleep 3
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: bash e2e/scripts/run-e2e-ui.sh
+        env:
+          BASE_URL: http://127.0.0.1:8000
+          QUEUE_CONNECTION: sync
+
+  # Legacy placeholder removed — see e2e-ui job above.
 
   php:
     name: PHP — lint & test
@@ -164,4 +224,6 @@ jobs:
 
       - name: Run PHPUnit — full test suite
         if: steps.scaffold.outputs.present == 'true' && hashFiles('phpunit.xml', 'phpunit.xml.dist') != ''
-        run: vendor/bin/phpunit --colors=always
+        run: |
+          php artisan scp:generate-isolation-tests --check
+          vendor/bin/phpunit --colors=always

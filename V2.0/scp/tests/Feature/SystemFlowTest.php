@@ -98,19 +98,17 @@ final class SystemFlowTest extends PlatformTestCase
 
         $checkout = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => $cartId,
-        ], [
-            'X-Tenant-ID' => $tenantId,
-            'X-Session-ID' => $sessionId,
-        ]);
+        ], array_merge(
+            $this->tenantMoneyHeaders($tenantId),
+            ['X-Session-ID' => $sessionId],
+        ));
 
         $checkoutSessionId = $checkout->json('data.session_id');
 
         $initialize = $this->postJson('/api/v1/platform/financial-services/payments/initialize', [
             'checkout_session_id' => $checkoutSessionId,
             'email' => 'buyer@flow-fashion.test',
-        ], [
-            'X-Tenant-ID' => $tenantId,
-        ]);
+        ], $this->tenantMoneyHeaders($tenantId));
 
         $initialize->assertOk()
             ->assertJsonStructure(['data' => ['authorization_url', 'reference']]);
@@ -119,9 +117,7 @@ final class SystemFlowTest extends PlatformTestCase
 
         $verify = $this->postJson('/api/v1/platform/financial-services/payments/verify', [
             'reference' => $reference,
-        ], [
-            'X-Tenant-ID' => $tenantId,
-        ]);
+        ], $this->tenantMoneyHeaders($tenantId));
 
         $verify->assertOk()
             ->assertJsonPath('data.status', 'completed')

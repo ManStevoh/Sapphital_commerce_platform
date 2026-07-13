@@ -21,7 +21,7 @@ final class CrossTenantIsolationTest extends PlatformTestCase
     {
         $manifest = config('tenant-isolation.models', []);
 
-        $this->assertCount(11, $manifest);
+        $this->assertCount(19, $manifest);
         $this->assertContains(Product::class, $manifest);
         $this->assertContains(MerchantUser::class, $manifest);
     }

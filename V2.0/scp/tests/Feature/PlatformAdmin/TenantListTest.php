@@ -6,7 +6,6 @@ namespace Tests\Feature\PlatformAdmin;
 
 use Platform\Identity\Enums\MerchantUserRole;
 use Platform\Identity\Models\MerchantUser;
-use Platform\Identity\Models\PlatformAdmin;
 use Platform\Tenancy\Models\Tenant;
 use Tests\Feature\PlatformTestCase;
 
@@ -14,10 +13,8 @@ final class TenantListTest extends PlatformTestCase
 {
     public function test_platform_admin_can_list_tenants(): void
     {
-        PlatformAdmin::query()->create([
-            'email' => 'admin@sapphital.test',
-            'password' => 'platform-secret',
-        ]);
+        $admin = $this->createPlatformAdmin();
+        $this->enrollPlatformAdminMfa($admin);
 
         Tenant::query()->create([
             'slug' => 'lagos-tech',
@@ -33,12 +30,7 @@ final class TenantListTest extends PlatformTestCase
             'country' => 'NG',
         ]);
 
-        $loginResponse = $this->postJson('/api/v1/auth/platform/login', [
-            'email' => 'admin@sapphital.test',
-            'password' => 'platform-secret',
-        ]);
-
-        $token = $loginResponse->json('token');
+        $token = $this->loginPlatformAdmin('admin@sapphital.test', 'platform-secret');
 
         $response = $this->getJson('/api/v1/platform/tenants', [
             'Authorization' => 'Bearer '.$token,
@@ -91,10 +83,8 @@ final class TenantListTest extends PlatformTestCase
 
     public function test_platform_admin_can_suspend_and_activate_tenant(): void
     {
-        PlatformAdmin::query()->create([
-            'email' => 'ops@sapphital.test',
-            'password' => 'platform-secret',
-        ]);
+        $admin = $this->createPlatformAdmin('ops@sapphital.test', 'platform-secret');
+        $this->enrollPlatformAdminMfa($admin);
 
         $tenant = Tenant::query()->create([
             'slug' => 'suspend-me',
@@ -103,12 +93,7 @@ final class TenantListTest extends PlatformTestCase
             'country' => 'NG',
         ]);
 
-        $loginResponse = $this->postJson('/api/v1/auth/platform/login', [
-            'email' => 'ops@sapphital.test',
-            'password' => 'platform-secret',
-        ]);
-
-        $token = $loginResponse->json('token');
+        $token = $this->loginPlatformAdmin('ops@sapphital.test', 'platform-secret');
 
         $suspend = $this->patchJson(
             '/api/v1/platform/tenants/'.$tenant->id.'/status',

@@ -14,7 +14,7 @@ final class SignupTest extends PlatformTestCase
     {
         $response = $this->postJson('/api/v1/signup', [
             'email' => 'merchant@example.com',
-            'password' => 'password123',
+            'password' => 'securepassword12',
             'store_name' => 'Lagos Tech Shop',
             'plan_slug' => 'starter',
         ]);
@@ -60,11 +60,26 @@ final class SignupTest extends PlatformTestCase
         $this->assertSame(3, \Modules\Commerce\Catalog\Models\Product::query()->where('tenant_id', $tenantId)->count());
     }
 
+    public function test_signup_rejects_short_password(): void
+    {
+        $response = $this->postJson('/api/v1/signup', [
+            'email' => 'merchant@example.com',
+            'password' => 'short1',
+            'store_name' => 'Test Store',
+            'plan_slug' => 'starter',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
+
+        $this->assertSame(0, Tenant::query()->count());
+    }
+
     public function test_signup_rejects_invalid_plan(): void
     {
         $response = $this->postJson('/api/v1/signup', [
             'email' => 'merchant@example.com',
-            'password' => 'password123',
+            'password' => 'securepassword12',
             'store_name' => 'Test Store',
             'plan_slug' => 'nonexistent',
         ]);

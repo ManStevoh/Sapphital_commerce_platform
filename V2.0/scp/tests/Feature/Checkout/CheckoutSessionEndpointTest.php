@@ -20,9 +20,7 @@ final class CheckoutSessionEndpointTest extends PlatformTestCase
 
         $response = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => $cart->id,
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $response->assertCreated()
             ->assertJsonPath('data.total_kobo', 3_000_000)
@@ -52,9 +50,7 @@ final class CheckoutSessionEndpointTest extends PlatformTestCase
 
         $response = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => $cart->id,
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['cart_id']);
@@ -64,7 +60,7 @@ final class CheckoutSessionEndpointTest extends PlatformTestCase
     {
         $response = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => (string) Str::uuid(),
-        ]);
+        ], $this->idempotencyHeaders());
 
         $response->assertForbidden()
             ->assertJson([
@@ -80,9 +76,7 @@ final class CheckoutSessionEndpointTest extends PlatformTestCase
 
         $response = $this->postJson('/api/v1/commerce/checkout/sessions', [
             'cart_id' => $cart->id,
-        ], [
-            'X-Tenant-ID' => $tenant->id,
-        ]);
+        ], $this->tenantMoneyHeaders($tenant->id));
 
         $response->assertNotFound()
             ->assertJson([
