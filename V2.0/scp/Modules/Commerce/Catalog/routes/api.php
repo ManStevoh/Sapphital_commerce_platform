@@ -47,6 +47,10 @@ Route::middleware('tenant.context')->group(function (): void {
     Route::get('/v1/commerce/catalog/search', [SearchController::class, 'search'])
         ->name('catalog.search');
 
+    Route::get('/v1/commerce/catalog/search/autocomplete', [SearchController::class, 'autocomplete'])
+        ->middleware('throttle:60,1')
+        ->name('catalog.search.autocomplete');
+
     Route::middleware(['auth:sanctum', 'merchant.tenant', 'permission.check:catalog.write'])->group(function (): void {
         Route::post('/v1/commerce/catalog/products', [ProductController::class, 'store'])
             ->name('catalog.products.store');

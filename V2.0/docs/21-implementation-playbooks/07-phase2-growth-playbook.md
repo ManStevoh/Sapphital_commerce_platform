@@ -78,12 +78,12 @@ Build per [Volume 7](../07-cms/README.md) and [ADR-012](../00-meta/adr/012-hybri
 
 Per [Volume 10 Ch. 04](../10-infrastructure/04-postgresql-redis-meilisearch.md):
 
-- [ ] Typo tolerance (Meilisearch / pg_trgm) — synonym dictionary shipped
+- [x] Typo tolerance (Meilisearch / pg_trgm) — synonym dictionary shipped; `pg_trgm` operator used when available
 - [x] Synonym dictionary (platform Nigerian English variants + merchant CRUD)
 - [x] Faceted filters: price range, availability, product type
 - [x] Search analytics: top queries, zero-result queries in admin
-- [ ] Autocomplete p95 ≤ 100ms (NFR target)
-- [ ] Search result ranking: text relevance + sales velocity boost
+- [x] Autocomplete p95 ≤ 100ms (NFR target)
+- [x] Search result ranking: text relevance + sales velocity boost
 
 ### 2.2 Merchandising
 

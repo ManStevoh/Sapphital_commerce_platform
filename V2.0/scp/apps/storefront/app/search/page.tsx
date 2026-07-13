@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { headers } from 'next/headers';
 import { searchProducts } from '@/lib/api';
 import { ProductGridSection } from '@/components/theme/ProductGridSection';
+import { SearchAutocomplete } from '@/components/SearchAutocomplete';
 import { StoreHeader } from '@/components/theme/StoreHeader';
 import { loadStorefrontTheme } from '@/lib/theme-loader';
 
@@ -78,13 +79,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <h1>Search</h1>
 
       <form method="get" action="/search" style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}>
-        <input
-          name="q"
-          defaultValue={q}
-          placeholder="Search products"
-          aria-label="Search products"
-          style={{ padding: '0.6rem 0.75rem', fontSize: '1rem' }}
-        />
+        <SearchAutocomplete defaultQuery={q} />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
           <label>
             Min (kobo){' '}

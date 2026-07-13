@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Modules\Commerce\Catalog\Services;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Expression;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Modules\Commerce\Catalog\Models\Product;
 use Modules\Commerce\Catalog\Models\ProductSearchQuery;
 use Modules\Commerce\Catalog\Models\ProductSearchSynonym;
@@ -54,6 +56,8 @@ final class ProductSearchService
         $this->applyFacets($builder, $filters);
 
         $products = (clone $builder)
+            ->orderByRaw($this->relevanceOrderSql($queryText))
+            ->orderByDesc($this->salesVelocitySubquery())
             ->orderBy('name')
             ->limit($limit)
             ->get([
@@ -85,6 +89,41 @@ final class ProductSearchService
             'query' => $queryText,
             'results_count' => $products->count(),
         ];
+    }
+
+    /**
+     * Prefix-oriented suggestions for storefront autocomplete (no analytics write).
+     *
+     * @return Collection<int, Product>
+     */
+    public function autocomplete(string $tenantId, string $queryText, int $limit = 8): Collection
+    {
+        $queryText = trim($queryText);
+        $limit = min(max($limit, 1), 15);
+
+        if (mb_strlen($queryText) < 2) {
+            return collect();
+        }
+
+        $builder = Product::query()
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'published');
+
+        $this->applyTextSearch($builder, $tenantId, $queryText);
+
+        return $builder
+            ->orderByRaw($this->relevanceOrderSql($queryText))
+            ->orderByDesc($this->salesVelocitySubquery())
+            ->orderBy('name')
+            ->limit($limit)
+            ->get([
+                'id',
+                'tenant_id',
+                'name',
+                'slug',
+                'price_kobo',
+                'inventory_qty',
+            ]);
     }
 
     /**
@@ -142,7 +181,47 @@ final class ProductSearchService
                 $outer->orWhere('name', 'like', '%'.$term.'%')
                     ->orWhereJsonContains('tags', $term);
             }
+
+            if ($outer->getConnection()->getDriverName() === 'pgsql') {
+                try {
+                    $outer->orWhereRaw('name % ?', [$queryText]);
+                } catch (\Throwable) {
+                    // pg_trgm may be absent — LIKE + synonyms remain the baseline.
+                }
+            }
         });
+    }
+
+    private function relevanceOrderSql(string $queryText): string
+    {
+        $needle = str_replace(['\\', '%', '_', "'"], ['\\\\', '\\%', '\\_', "''"], mb_strtolower($queryText));
+
+        if ($needle === '') {
+            return '1';
+        }
+
+        return "CASE
+            WHEN LOWER(name) LIKE '{$needle}%' THEN 0
+            WHEN LOWER(name) LIKE '%{$needle}%' THEN 1
+            WHEN LOWER(slug) LIKE '%{$needle}%' THEN 2
+            ELSE 3
+        END";
+    }
+
+    private function salesVelocitySubquery(): Expression
+    {
+        $sinceSql = DB::connection()->getDriverName() === 'pgsql'
+            ? "NOW() - INTERVAL '30 days'"
+            : "datetime('now', '-30 days')";
+
+        return DB::raw(
+            "(SELECT COALESCE(SUM(order_items.quantity), 0)
+              FROM order_items
+              INNER JOIN orders ON orders.id = order_items.order_id
+              WHERE order_items.product_id = products.id
+                AND orders.status IN ('paid', 'fulfilled')
+                AND orders.created_at >= {$sinceSql})"
+        );
     }
 
     /**

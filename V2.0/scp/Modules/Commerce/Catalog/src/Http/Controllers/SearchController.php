@@ -58,6 +58,38 @@ final class SearchController
         ]);
     }
 
+    public function autocomplete(Request $request): JsonResponse
+    {
+        $tenantId = $this->tenantId($request);
+
+        if ($tenantId === null) {
+            return $this->missingTenantResponse();
+        }
+
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'max:255'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:15'],
+        ]);
+
+        $suggestions = $this->searchService->autocomplete(
+            $tenantId,
+            $validated['q'],
+            (int) ($validated['limit'] ?? 8),
+        );
+
+        return response()->json([
+            'data' => $suggestions->map(static fn ($product): array => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'price_kobo' => $product->price_kobo,
+            ])->values(),
+            'meta' => [
+                'query' => trim($validated['q']),
+            ],
+        ]);
+    }
+
     public function analytics(Request $request): JsonResponse
     {
         $tenantId = $this->tenantId($request);

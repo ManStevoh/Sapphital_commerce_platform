@@ -697,6 +697,30 @@ export async function searchProducts(
 
 
 
+export interface AutocompleteSuggestion {
+  id: string;
+  name: string;
+  slug: string;
+  price_kobo: number;
+}
+
+export async function searchAutocomplete(
+  tenantId: string,
+  q: string,
+  limit = 8,
+): Promise<AutocompleteSuggestion[]> {
+  const query = new URLSearchParams({ q, limit: String(limit) });
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/catalog/search/autocomplete?${query.toString()}`,
+    {
+      headers: tenantHeaders(tenantId),
+      cache: 'no-store',
+    },
+  );
+  const result = await parseJson<{ data: AutocompleteSuggestion[] }>(response);
+  return result.data;
+}
+
 export async function fetchTheme(tenantId: string): Promise<ThemeConfig> {
 
   const response = await fetch(`${API_URL}/api/v1/commerce/storefront/theme`, {

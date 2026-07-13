@@ -161,6 +161,71 @@ final class ProductSearchEndpointTest extends PlatformTestCase
         $this->assertSame(0, ProductSearchSynonym::query()->where('tenant_id', $tenant->id)->count());
     }
 
+    public function test_autocomplete_returns_prefix_suggestions_without_analytics(): void
+    {
+        $tenant = $this->createTenant();
+
+        Product::query()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Shirt Classic',
+            'slug' => 'shirt-classic',
+            'price_kobo' => 30_000,
+            'status' => 'published',
+            'inventory_qty' => 2,
+        ]);
+
+        Product::query()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Shoes Run',
+            'slug' => 'shoes-run',
+            'price_kobo' => 50_000,
+            'status' => 'published',
+            'inventory_qty' => 2,
+        ]);
+
+        $response = $this->getJson(
+            '/api/v1/commerce/catalog/search/autocomplete?q=shi',
+            ['X-Tenant-ID' => $tenant->id],
+        );
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.slug', 'shirt-classic');
+
+        $this->assertSame(0, ProductSearchQuery::query()->where('tenant_id', $tenant->id)->count());
+    }
+
+    public function test_search_ranks_prefix_matches_before_contains(): void
+    {
+        $tenant = $this->createTenant();
+
+        Product::query()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Blue Shirt',
+            'slug' => 'blue-shirt',
+            'price_kobo' => 20_000,
+            'status' => 'published',
+            'inventory_qty' => 1,
+        ]);
+
+        Product::query()->create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Shirt Pack',
+            'slug' => 'shirt-pack',
+            'price_kobo' => 25_000,
+            'status' => 'published',
+            'inventory_qty' => 1,
+        ]);
+
+        $response = $this->getJson(
+            '/api/v1/commerce/catalog/search?q=shirt',
+            ['X-Tenant-ID' => $tenant->id],
+        );
+
+        $response->assertOk()->assertJsonCount(2, 'data');
+        $this->assertSame('shirt-pack', $response->json('data.0.slug'));
+    }
+
     private function createTenant(string $prefix = 'search'): Tenant
     {
         return Tenant::query()->create([
