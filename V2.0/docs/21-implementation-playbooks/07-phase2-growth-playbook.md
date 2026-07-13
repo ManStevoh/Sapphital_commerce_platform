@@ -88,8 +88,8 @@ Per [Volume 10 Ch. 04](../10-infrastructure/04-postgresql-redis-meilisearch.md):
 
 Per [Volume 5 Ch. 03](../05-commerce-engine/03-collections-and-categories.md):
 
-- [ ] Smart collections: best sellers (30-day window), new arrivals, on sale
-- [ ] Collection scheduling (start/end dates)
+- [x] Smart collections: best sellers (30-day window), new arrivals, on sale
+- [x] Collection scheduling (start/end dates)
 - [x] Product tags for filtering and collection rules
 - [x] Related products on PDP (same collection + manual override)
 - [ ] Homepage section: "Recently viewed" for returning visitors (cookie-based)
@@ -258,10 +258,10 @@ Per [Volume 6](../06-theme-engine/README.md):
 
 | # | Workstream | Gate | Status |
 |---|------------|------|--------|
-| 1 | CMS page builder | Gate §1 | ☐ |
-| 2 | Blog + SEO | Gate §1 | ☐ |
+| 1 | CMS page builder | Gate §1 | ☑ |
+| 2 | Blog + SEO | Gate §1 | ☑ |
 | 3 | Search facets + analytics | §2 | ☐ |
-| 4 | Smart collections | §2 | ☐ |
+| 4 | Smart collections | §2 | ☑ |
 | 5 | AI description + SEO gen | Gate §3 | ☐ |
 | 6 | Digital products + gift cards | §4 | ☐ |
 | 7 | Customer accounts | §4 | ☐ |

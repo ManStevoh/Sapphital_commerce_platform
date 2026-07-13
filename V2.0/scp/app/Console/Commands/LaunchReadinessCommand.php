@@ -148,6 +148,7 @@ final class LaunchReadinessCommand extends Command
             'scp:reconcile-pending-payments',
             'scp:alert-dispute-deadlines',
             'cms:process-scheduled-content',
+            'catalog:process-scheduled-collections',
         ];
 
         $consoleRoutes = (string) file_get_contents(base_path('routes/console.php'));
@@ -160,7 +161,7 @@ final class LaunchReadinessCommand extends Command
             }
         }
 
-        $this->line('OK  Scheduler registers billing, payment reconciliation, and CMS jobs.');
+        $this->line('OK  Scheduler registers billing, payment reconciliation, CMS, and catalog jobs.');
     }
 
     private function checkSecretsStorage(): void

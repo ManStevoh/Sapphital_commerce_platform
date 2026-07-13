@@ -9,7 +9,11 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use Modules\Commerce\Cart\Models\Cart;
 use Modules\Commerce\Cart\Models\CartItem;
+use Modules\Commerce\Catalog\Models\Collection;
+use Modules\Commerce\Catalog\Models\CollectionProduct;
 use Modules\Commerce\Catalog\Models\Product;
+use Modules\Commerce\Catalog\Enums\CollectionStatus;
+use Modules\Commerce\Catalog\Enums\CollectionType;
 use Modules\Commerce\Checkout\Models\CheckoutSession;
 use Modules\Commerce\Orders\Models\Order;
 use Modules\Commerce\Orders\Models\OrderItem;
@@ -56,6 +60,15 @@ final class IsolationRecordFactory
                 'status' => 'published',
                 'inventory_qty' => 1,
             ]),
+            Collection::class => Collection::query()->create([
+                'tenant_id' => $tenantId,
+                'title' => 'Isolation Collection',
+                'slug' => 'iso-coll-'.Str::random(6),
+                'type' => CollectionType::Manual,
+                'status' => CollectionStatus::Draft,
+                'sort_order' => 'manual',
+            ]),
+            CollectionProduct::class => $this->createCollectionProduct($tenantId),
             Cart::class => Cart::query()->create([
                 'tenant_id' => $tenantId,
                 'session_id' => (string) Str::uuid(),
@@ -200,6 +213,19 @@ final class IsolationRecordFactory
             'plan_id' => $plan->id,
             'status' => SubscriptionStatus::Trial,
             'trial_ends_at' => now()->addDays(14),
+        ]);
+    }
+
+    private function createCollectionProduct(string $tenantId): CollectionProduct
+    {
+        $collection = $this->create(Collection::class, $tenantId);
+        $product = $this->create(Product::class, $tenantId);
+
+        return CollectionProduct::query()->create([
+            'tenant_id' => $tenantId,
+            'collection_id' => $collection->id,
+            'product_id' => $product->id,
+            'position' => 0,
         ]);
     }
 

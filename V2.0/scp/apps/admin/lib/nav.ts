@@ -2,6 +2,7 @@ import type { AdminNavItem } from '@sapphital/scp-ui';
 
 export const adminNav: AdminNavItem[] = [
   { href: '/products', label: 'Products' },
+  { href: '/collections', label: 'Collections' },
   { href: '/pages', label: 'Pages' },
   { href: '/blog', label: 'Blog' },
   { href: '/navigation', label: 'Navigation' },

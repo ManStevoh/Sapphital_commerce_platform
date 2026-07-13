@@ -12,6 +12,8 @@ return [
 
     'models' => [
         Modules\Commerce\Catalog\Models\Product::class,
+        Modules\Commerce\Catalog\Models\Collection::class,
+        Modules\Commerce\Catalog\Models\CollectionProduct::class,
         Modules\Commerce\Cart\Models\Cart::class,
         Modules\Commerce\Checkout\Models\CheckoutSession::class,
         Modules\Commerce\Orders\Models\Order::class,
@@ -35,6 +37,7 @@ return [
 
     'api_resources' => [
         'catalog.products' => '/api/v1/commerce/catalog/products',
+        'catalog.collections' => '/api/v1/commerce/catalog/collections',
         'orders' => '/api/v1/commerce/orders',
         'carts' => '/api/v1/commerce/cart',
         'shipments' => '/api/v1/commerce/shipping/shipments',

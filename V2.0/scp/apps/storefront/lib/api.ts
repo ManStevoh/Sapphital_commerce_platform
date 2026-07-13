@@ -493,6 +493,96 @@ export async function fetchRelatedProducts(
 
 
 
+export interface CatalogCollectionSummary {
+
+  id: string;
+
+  tenant_id: string;
+
+  title: string;
+
+  slug: string;
+
+  description: string | null;
+
+  type: string;
+
+  status: string;
+
+}
+
+
+
+export async function fetchCollectionBySlug(
+
+  slug: string,
+
+  tenantSlug?: string,
+
+  limit = 24,
+
+): Promise<{
+
+  collection: CatalogCollectionSummary;
+
+  products: Product[];
+
+  nextCursor: string | null;
+
+} | null> {
+
+  try {
+
+    const tenantId = await resolveTenantId(tenantSlug);
+
+    const response = await fetch(
+
+      `${API_URL}/api/v1/commerce/catalog/collections/by-slug/${encodeURIComponent(slug)}?limit=${limit}`,
+
+      {
+
+        headers: tenantHeaders(tenantId),
+
+        next: { revalidate: 60 },
+
+      },
+
+    );
+
+    if (response.status === 404) {
+
+      return null;
+
+    }
+
+    const result = await parseJson<{
+
+      data: { collection: CatalogCollectionSummary; products: Product[] };
+
+      meta: { next_cursor: string | null };
+
+    }>(response);
+
+    return {
+
+      collection: result.data.collection,
+
+      products: result.data.products,
+
+      nextCursor: result.meta.next_cursor,
+
+    };
+
+  } catch {
+
+    return null;
+
+  }
+
+}
+
+
+
 export async function fetchTheme(tenantId: string): Promise<ThemeConfig> {
 
   const response = await fetch(`${API_URL}/api/v1/commerce/storefront/theme`, {

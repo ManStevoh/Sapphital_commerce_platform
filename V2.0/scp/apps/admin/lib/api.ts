@@ -1340,3 +1340,148 @@ export async function restoreCmsBlogPostVersion(
   const result = await parseJson<{ data: CmsBlogPost }>(response);
   return result.data;
 }
+
+export type CollectionType = 'manual' | 'smart';
+export type CollectionStatus = 'draft' | 'published' | 'scheduled';
+export type CollectionSortOrder =
+  | 'manual'
+  | 'best_selling'
+  | 'newest'
+  | 'price_asc'
+  | 'price_desc';
+
+export interface CatalogCollection {
+  id: string;
+  tenant_id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  type: CollectionType;
+  rules_json: Record<string, unknown> | null;
+  sort_order: CollectionSortOrder | string;
+  status: CollectionStatus;
+  published_at: string | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface CatalogCollectionInput {
+  title: string;
+  slug?: string;
+  description?: string | null;
+  type: CollectionType;
+  rules_json?: Record<string, unknown> | null;
+  sort_order?: CollectionSortOrder;
+  status: CollectionStatus;
+  published_at?: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
+  product_ids?: string[];
+}
+
+export async function fetchCollections(tenantId: string): Promise<CatalogCollection[]> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/catalog/collections`, {
+    headers: tenantHeaders(tenantId),
+  });
+  const result = await parseJson<{ data: CatalogCollection[] }>(response);
+  return result.data;
+}
+
+export async function fetchCollection(
+  tenantId: string,
+  collectionId: string,
+): Promise<CatalogCollection> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/catalog/collections/${encodeURIComponent(collectionId)}`,
+    { headers: tenantHeaders(tenantId) },
+  );
+  const result = await parseJson<{ data: CatalogCollection }>(response);
+  return result.data;
+}
+
+export async function createCollection(
+  tenantId: string,
+  input: CatalogCollectionInput,
+): Promise<CatalogCollection> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/catalog/collections`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: CatalogCollection }>(response);
+  return result.data;
+}
+
+export async function updateCollection(
+  tenantId: string,
+  collectionId: string,
+  input: CatalogCollectionInput,
+): Promise<CatalogCollection> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/catalog/collections/${encodeURIComponent(collectionId)}`,
+    {
+      method: 'PUT',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(input),
+    },
+  );
+  const result = await parseJson<{ data: CatalogCollection }>(response);
+  return result.data;
+}
+
+export async function deleteCollection(
+  tenantId: string,
+  collectionId: string,
+): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/catalog/collections/${encodeURIComponent(collectionId)}`,
+    {
+      method: 'DELETE',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+
+  if (!response.ok && response.status !== 204) {
+    await parseJson(response);
+  }
+}
+
+export async function syncCollectionProducts(
+  tenantId: string,
+  collectionId: string,
+  productIds: string[],
+): Promise<Product[]> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/catalog/collections/${encodeURIComponent(collectionId)}/products`,
+    {
+      method: 'PUT',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ product_ids: productIds }),
+    },
+  );
+  const result = await parseJson<{ data: Product[] }>(response);
+  return result.data;
+}
+
+export async function fetchCollectionProducts(
+  tenantId: string,
+  collectionId: string,
+): Promise<Product[]> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/catalog/collections/${encodeURIComponent(collectionId)}/products?limit=50`,
+    { headers: tenantHeaders(tenantId) },
+  );
+  const result = await parseJson<{ data: Product[] }>(response);
+  return result.data;
+}

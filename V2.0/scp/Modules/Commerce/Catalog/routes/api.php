@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
+use Modules\Commerce\Catalog\Http\Controllers\CollectionController;
 use Modules\Commerce\Catalog\Http\Controllers\HealthController;
 use Modules\Commerce\Catalog\Http\Controllers\ProductController;
 use Modules\Commerce\Catalog\Http\Controllers\StorefrontController;
@@ -26,6 +27,21 @@ Route::middleware('tenant.context')->group(function (): void {
     Route::get('/v1/commerce/catalog/products/{id}/related', [ProductController::class, 'related'])
         ->name('catalog.products.related');
 
+    Route::get('/v1/commerce/catalog/collections', [CollectionController::class, 'index'])
+        ->name('catalog.collections.index');
+
+    Route::get('/v1/commerce/catalog/collections/published', [CollectionController::class, 'published'])
+        ->name('catalog.collections.published');
+
+    Route::get('/v1/commerce/catalog/collections/by-slug/{slug}', [CollectionController::class, 'bySlug'])
+        ->name('catalog.collections.by-slug');
+
+    Route::get('/v1/commerce/catalog/collections/{id}', [CollectionController::class, 'show'])
+        ->name('catalog.collections.show');
+
+    Route::get('/v1/commerce/catalog/collections/{id}/products', [CollectionController::class, 'products'])
+        ->name('catalog.collections.products');
+
     Route::middleware(['auth:sanctum', 'merchant.tenant', 'permission.check:catalog.write'])->group(function (): void {
         Route::post('/v1/commerce/catalog/products', [ProductController::class, 'store'])
             ->name('catalog.products.store');
@@ -35,6 +51,18 @@ Route::middleware('tenant.context')->group(function (): void {
 
         Route::delete('/v1/commerce/catalog/products/{id}', [ProductController::class, 'destroy'])
             ->name('catalog.products.destroy');
+
+        Route::post('/v1/commerce/catalog/collections', [CollectionController::class, 'store'])
+            ->name('catalog.collections.store');
+
+        Route::put('/v1/commerce/catalog/collections/{id}', [CollectionController::class, 'update'])
+            ->name('catalog.collections.update');
+
+        Route::delete('/v1/commerce/catalog/collections/{id}', [CollectionController::class, 'destroy'])
+            ->name('catalog.collections.destroy');
+
+        Route::put('/v1/commerce/catalog/collections/{id}/products', [CollectionController::class, 'syncProducts'])
+            ->name('catalog.collections.products.sync');
 
         Route::put('/v1/commerce/storefront/theme/settings', [StorefrontController::class, 'updateThemeSettings'])
             ->name('storefront.theme.settings.update');
