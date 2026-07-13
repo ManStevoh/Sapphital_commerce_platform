@@ -5,10 +5,19 @@ $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 Set-Location $Root
 
+function Invoke-Git {
+    param([string[]]$Args)
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    & git @Args 2>&1 | Out-Null
+    $code = $LASTEXITCODE
+    $ErrorActionPreference = $prev
+    return $code
+}
+
 # Remove empty/nested .git folders so files are tracked in monorepo
 $nestedGit = @(
-    "$Root\V2.0\scp\.git",
-    "$Root\marketplace\.git"
+    "$Root\V2.0\scp\.git"
 )
 foreach ($g in $nestedGit) {
     if (Test-Path $g) {
@@ -62,50 +71,40 @@ foreach ($d in $scpDirs) {
     $components += @{ Path = "V2.0/scp/$name"; Msg = "feat: add SCP $name" }
 }
 
-# Marketplace top-level
-$mpDirs = Get-ChildItem "marketplace" -Directory -ErrorAction SilentlyContinue | Sort-Object Name
-foreach ($d in $mpDirs) {
-    $name = $d.Name
-    $components += @{ Path = "marketplace/$name"; Msg = "feat: add marketplace $name" }
-}
-
 $count = 0
 foreach ($c in $components) {
     if (-not (Test-Path $c.Path)) { continue }
 
-    git add -- "$($c.Path)" 2>$null
-    git diff --cached --quiet 2>$null
-    if ($LASTEXITCODE -eq 0) { continue }
+    Invoke-Git add -- "$($c.Path)" | Out-Null
+    if ((Invoke-Git diff --cached --quiet) -eq 0) { continue }
 
-    git commit -m $c.Msg
-    if ($LASTEXITCODE -ne 0) { continue }
+    Invoke-Git commit -m $c.Msg | Out-Null
 
     $count++
     Write-Host "Committed: $($c.Msg)"
 
     if ($count % $PushEvery -eq 0) {
         Write-Host "Pushing batch..."
-        git push origin main 2>&1
+        Invoke-Git push origin main | Out-Null
     }
 }
 
 # Per-file commits for remaining untracked (max granularity)
 $remaining = git ls-files --others --exclude-standard
 foreach ($f in $remaining) {
-    git add -- "$f" 2>$null
-    git diff --cached --quiet 2>$null
-    if ($LASTEXITCODE -eq 0) { continue }
+    Invoke-Git add -- "$f" | Out-Null
+    if ((Invoke-Git diff --cached --quiet) -eq 0) { continue }
 
     $norm = $f -replace '\\', '/'
-    git commit -m "feat: add $norm"
+    Invoke-Git commit -m "feat: add $norm" | Out-Null
     $count++
     if ($count % $PushEvery -eq 0) {
-        git push origin main 2>&1
+        Invoke-Git push origin main | Out-Null
     }
 }
 
 Get-Job | Wait-Job -ErrorAction SilentlyContinue | Out-Null
 Write-Host "Final push..."
-git push -u origin main 2>&1
+Invoke-Git push -u origin main | Out-Null
 $total = git rev-list --count HEAD
 Write-Host "Done. $count new commits. Total: $total"

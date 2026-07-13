@@ -46,8 +46,8 @@ npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# User uploads (regenerate at runtime)
-marketplace/assets/uploads/**
+# Legacy marketplace (local only — not part of SCP monorepo)
+marketplace/
 
 # Package manager locks in nested packages (root lockfiles kept)
 # Composer/npm lockfiles at project roots are tracked
