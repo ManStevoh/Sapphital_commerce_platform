@@ -1,13 +1,14 @@
 import Link from 'next/link';
-import type { ThemeConfig } from '@/lib/api';
+import type { CmsNavLink, ThemeConfig } from '@/lib/api';
 
 interface StoreHeaderProps {
   storeName: string;
   tenantSlug?: string | null;
   theme: ThemeConfig | null;
+  navLinks?: CmsNavLink[];
 }
 
-export function StoreHeader({ storeName, tenantSlug, theme }: StoreHeaderProps) {
+export function StoreHeader({ storeName, tenantSlug, theme, navLinks = [] }: StoreHeaderProps) {
   const primary = theme?.settings.primary_color ?? theme?.colors.primary ?? 'var(--color-brand)';
 
   return (
@@ -35,9 +36,20 @@ export function StoreHeader({ storeName, tenantSlug, theme }: StoreHeaderProps) 
             </p>
           )}
         </div>
-        <nav style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem' }}>
+        <nav style={{ display: 'flex', gap: '1rem', fontSize: '0.875rem', flexWrap: 'wrap' }}>
           <Link href="/">Shop</Link>
+          <Link href="/blog">Blog</Link>
           <Link href="/cart">Cart</Link>
+          {navLinks.map((link) => (
+            <Link
+              key={`${link.href}-${link.label}`}
+              href={link.href}
+              target={link.open_in_new_tab ? '_blank' : undefined}
+              rel={link.open_in_new_tab ? 'noopener noreferrer' : undefined}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
       </div>
     </header>

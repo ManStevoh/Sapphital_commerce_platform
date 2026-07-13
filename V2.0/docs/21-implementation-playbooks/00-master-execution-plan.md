@@ -281,7 +281,8 @@ Copy from [Cursor Implementation Workflow](../00-meta/cursor-implementation-work
 | `doc-first-implementation.mdc` | Always — read spec before code |
 | `platform-os-boundaries.mdc` | Platform/, Modules/, Connectors/ |
 | `performance-security-scalability.mdc` | Always |
-| `testing-and-quality.mdc` | Always — no white screens, no 500s |
+| `testing-and-quality.mdc` | Always — no white screens, no 500s; **tests run in background** |
+| `background-commands-default.mdc` | Always — Shell + `composer test` use `block_until_ms: 0` |
 | `no-npm-build.mdc` | No npm install/build unless user requests |
 
 ### 8.4 Task sizing

@@ -30,6 +30,7 @@ return [
         Modules\Content\Cms\Models\Page::class,
         Modules\Content\Cms\Models\BlogPost::class,
         Modules\Content\Cms\Models\NavigationMenu::class,
+        Modules\Content\Cms\Models\ContentVersion::class,
     ],
 
     'api_resources' => [

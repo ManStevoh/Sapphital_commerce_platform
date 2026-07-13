@@ -1,14 +1,18 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
 import { StoreHeader } from '@/components/theme/StoreHeader';
+import { CmsSectionRenderer } from '@/components/cms/CmsSectionRenderer';
+import { fetchCmsPageBySlug, fetchStoreNavigation } from '@/lib/api';
+import { buildCmsMetadata, siteBaseUrl } from '@/lib/seo-metadata';
 import { loadStorefrontTheme } from '@/lib/theme-loader';
 
 interface ContentPageProps {
   params: Promise<{ slug: string }>;
 }
 
-const STATIC_PAGES: Record<string, { title: string; body: string }> = {
+const STATIC_FALLBACK: Record<string, { title: string; body: string }> = {
   about: {
     title: 'About us',
     body: 'We are a Nigerian merchant powered by SAPPHITAL Commerce Platform.',
@@ -28,12 +32,14 @@ const STATIC_PAGES: Record<string, { title: string; body: string }> = {
 };
 
 function titleFromSlug(slug: string): string {
-  return STATIC_PAGES[slug]?.title
-    ?? slug
+  return (
+    STATIC_FALLBACK[slug]?.title ??
+    slug
       .split('-')
       .filter(Boolean)
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
+      .join(' ')
+  );
 }
 
 export async function generateMetadata({
@@ -42,10 +48,21 @@ export async function generateMetadata({
   const { slug } = await params;
   const requestHeaders = await headers();
   const storeName = requestHeaders.get('x-tenant-name') ?? 'Store';
+  const tenantSlug = requestHeaders.get('x-tenant-slug') ?? undefined;
+  const cmsPage = await fetchCmsPageBySlug(slug, tenantSlug);
 
-  return {
-    title: `${titleFromSlug(slug)} — ${storeName}`,
-  };
+  return buildCmsMetadata({
+    title: cmsPage?.title ?? titleFromSlug(slug),
+    slug,
+    storeName,
+    tenantSlug,
+    pathPrefix: '/pages',
+    description: cmsPage?.seo_description,
+    seo_title: cmsPage?.seo_title,
+    seo_description: cmsPage?.seo_description,
+    seo_og_image_url: cmsPage?.seo_og_image_url,
+    seo_canonical_url: cmsPage?.seo_canonical_url,
+  });
 }
 
 export default async function ContentPage({ params }: ContentPageProps) {
@@ -54,28 +71,68 @@ export default async function ContentPage({ params }: ContentPageProps) {
   const tenantSlug = requestHeaders.get('x-tenant-slug');
   const storeName = requestHeaders.get('x-tenant-name') ?? 'Store';
   const themeBundle = await loadStorefrontTheme();
-  const page = STATIC_PAGES[slug];
-  const title = titleFromSlug(slug);
+  const [cmsPage, navLinks] = await Promise.all([
+    fetchCmsPageBySlug(slug, tenantSlug ?? undefined),
+    fetchStoreNavigation('header', tenantSlug ?? undefined),
+  ]);
+  const fallback = STATIC_FALLBACK[slug];
+
+  if (!cmsPage && !fallback) {
+    notFound();
+  }
+
+  const title = cmsPage?.title ?? titleFromSlug(slug);
+  const sections = cmsPage?.body_json?.sections ?? [];
+  const hasRenderableSections = sections.length > 0;
+  const baseUrl = siteBaseUrl(tenantSlug);
+  const pageUrl = cmsPage?.seo_canonical_url ?? `${baseUrl}/pages/${slug}`;
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: storeName,
+        item: baseUrl,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: title,
+        item: pageUrl,
+      },
+    ],
+  };
 
   return (
     <main style={{ maxWidth: 720, margin: '0 auto', padding: '2rem 1rem' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       <StoreHeader
         storeName={storeName}
         tenantSlug={tenantSlug}
         theme={themeBundle?.config ?? null}
+        navLinks={navLinks}
       />
 
-      <p>
-        <Link href="/">&larr; Back to shop</Link>
-      </p>
+      <nav aria-label="Breadcrumb" style={{ fontSize: '0.875rem', marginBottom: '1rem' }}>
+        <Link href="/">Shop</Link>
+        {' / '}
+        <span>{title}</span>
+      </nav>
 
       <h1>{title}</h1>
-      <p style={{ color: 'var(--color-text-secondary)', marginBottom: '1.5rem' }}>
-        Theme template: page
-      </p>
 
-      <article style={{ lineHeight: 1.7 }}>
-        <p>{page?.body ?? `Content for “${title}” will appear here.`}</p>
+      <article style={{ marginTop: '1.5rem' }}>
+        {hasRenderableSections ? (
+          <CmsSectionRenderer sections={sections} />
+        ) : (
+          <p style={{ lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{fallback?.body ?? ''}</p>
+        )}
       </article>
     </main>
   );

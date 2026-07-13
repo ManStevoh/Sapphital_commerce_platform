@@ -34,8 +34,12 @@ final class BlogPost extends Model
         'featured_image_url',
         'seo_title',
         'seo_description',
+        'seo_og_image_url',
+        'seo_canonical_url',
         'status',
         'published_at',
+        'scheduled_publish_at',
+        'scheduled_unpublish_at',
     ];
 
     /**
@@ -49,6 +53,8 @@ final class BlogPost extends Model
             'tags' => 'array',
             'status' => ContentStatus::class,
             'published_at' => 'datetime',
+            'scheduled_publish_at' => 'datetime',
+            'scheduled_unpublish_at' => 'datetime',
         ];
     }
 }

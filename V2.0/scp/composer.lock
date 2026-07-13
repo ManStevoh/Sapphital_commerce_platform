@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "74d9247b85730535850cd3a19cc70578",
+    "content-hash": "af71e1fc466ff9c52b893b38f1655b98",
     "packages": [
         {
             "name": "brick/math",
@@ -3482,6 +3482,49 @@
                 "proprietary"
             ],
             "description": "SAPPHITAL Paystack PSP connector — transaction initialize and verify",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "sapphital/content-cms",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "Modules/Content/Cms",
+                "reference": "2ee90f1147c9caa5161d365d779f00abd5b1cd4e"
+            },
+            "require": {
+                "illuminate/database": "^12.0",
+                "illuminate/http": "^12.0",
+                "illuminate/routing": "^12.0",
+                "illuminate/support": "^12.0",
+                "php": "^8.3",
+                "sapphital/platform-identity": "@dev",
+                "sapphital/platform-tenancy": "@dev"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^10.0",
+                "phpunit/phpunit": "^11.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Modules\\Content\\Cms\\CmsServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Modules\\Content\\Cms\\": "src/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "SAPPHITAL Content — CMS pages, blog posts, and navigation",
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -9499,6 +9542,7 @@
         "sapphital/commerce-shipping": 20,
         "sapphital/connector-flutterwave": 20,
         "sapphital/connector-paystack": 20,
+        "sapphital/content-cms": 20,
         "sapphital/platform-billing": 20,
         "sapphital/platform-financial-services": 20,
         "sapphital/platform-identity": 20,

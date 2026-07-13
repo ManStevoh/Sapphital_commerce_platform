@@ -36,6 +36,8 @@ export interface Product {
 
   inventory_qty: number;
 
+  tags?: string[] | null;
+
 }
 
 
@@ -445,6 +447,52 @@ export async function fetchProduct(
 
 
 
+export async function fetchRelatedProducts(
+
+  productId: string,
+
+  tenantSlug?: string,
+
+): Promise<Product[]> {
+
+  try {
+
+    const tenantId = await resolveTenantId(tenantSlug);
+
+    const response = await fetch(
+
+      `${API_URL}/api/v1/commerce/catalog/products/${encodeURIComponent(productId)}/related?limit=4`,
+
+      {
+
+        headers: tenantHeaders(tenantId),
+
+        next: { revalidate: 60 },
+
+      },
+
+    );
+
+    if (!response.ok) {
+
+      return [];
+
+    }
+
+    const result = await parseJson<ProductListResponse>(response);
+
+    return result.data;
+
+  } catch {
+
+    return [];
+
+  }
+
+}
+
+
+
 export async function fetchTheme(tenantId: string): Promise<ThemeConfig> {
 
   const response = await fetch(`${API_URL}/api/v1/commerce/storefront/theme`, {
@@ -797,4 +845,249 @@ export async function submitGuestReturnRequest(
 
   const result = await parseJson<GuestReturnRequestResponse>(response);
   return result.data;
+}
+
+export interface CmsPage {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_og_image_url: string | null;
+  seo_canonical_url: string | null;
+  body_json: { sections?: Array<{ type: string; content?: string }> } | null;
+}
+
+export interface CmsPageSummary {
+  id: string;
+  title: string;
+  slug: string;
+  published_at: string | null;
+  updated_at: string | null;
+}
+
+export async function fetchPublishedCmsPages(tenantSlug?: string): Promise<CmsPageSummary[]> {
+  try {
+    const tenantId = await resolveTenantId(tenantSlug);
+    const response = await fetch(`${API_URL}/api/v1/content/cms/pages/published`, {
+      headers: tenantHeaders(tenantId),
+      next: { revalidate: 300 },
+    });
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const result = await parseJson<{ data: CmsPageSummary[] }>(response);
+    return result.data;
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchCmsPageBySlug(
+  slug: string,
+  tenantSlug?: string,
+): Promise<CmsPage | null> {
+  try {
+    const tenantId = await resolveTenantId(tenantSlug);
+    const response = await fetch(
+      `${API_URL}/api/v1/content/cms/pages/by-slug/${encodeURIComponent(slug)}`,
+      {
+        headers: tenantHeaders(tenantId),
+        next: { revalidate: 60 },
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    const result = await parseJson<{ data: CmsPage }>(response);
+    return result.data;
+  } catch {
+    return null;
+  }
+}
+
+export interface CmsBlogPostSummary {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  author_name: string;
+  tags: string[] | null;
+  featured_image_url: string | null;
+  published_at: string | null;
+}
+
+export interface CmsBlogPostPage {
+  data: CmsBlogPostSummary[];
+  meta: {
+    limit: number;
+    next_cursor: string | null;
+  };
+}
+
+export interface CmsBlogPost extends CmsBlogPostSummary {
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_og_image_url: string | null;
+  seo_canonical_url: string | null;
+  body_json: { sections?: Array<{ type: string; content?: string }> } | null;
+}
+
+export interface CmsNavLink {
+  label: string;
+  href: string;
+  open_in_new_tab?: boolean;
+}
+
+export async function fetchPublishedBlogPosts(
+  tenantSlug?: string,
+): Promise<CmsBlogPostSummary[]> {
+  const page = await fetchPublishedBlogPostPage(tenantSlug, { limit: 50 });
+
+  return page.data;
+}
+
+export async function fetchPublishedBlogPostPage(
+  tenantSlug?: string,
+  options: { limit?: number; cursor?: string } = {},
+): Promise<CmsBlogPostPage> {
+  try {
+    const tenantId = await resolveTenantId(tenantSlug);
+    const params = new URLSearchParams();
+
+    if (options.limit) {
+      params.set('limit', String(options.limit));
+    }
+
+    if (options.cursor) {
+      params.set('cursor', options.cursor);
+    }
+
+    const query = params.toString();
+    const response = await fetch(
+      `${API_URL}/api/v1/content/cms/blog-posts/published${query ? `?${query}` : ''}`,
+      {
+        headers: tenantHeaders(tenantId),
+        next: { revalidate: 60 },
+      },
+    );
+
+    if (!response.ok) {
+      return { data: [], meta: { limit: options.limit ?? 10, next_cursor: null } };
+    }
+
+    const result = await parseJson<CmsBlogPostPage>(response);
+    return result;
+  } catch {
+    return { data: [], meta: { limit: options.limit ?? 10, next_cursor: null } };
+  }
+}
+
+export async function fetchBlogPostBySlug(
+  slug: string,
+  tenantSlug?: string,
+): Promise<CmsBlogPost | null> {
+  try {
+    const tenantId = await resolveTenantId(tenantSlug);
+    const response = await fetch(
+      `${API_URL}/api/v1/content/cms/blog-posts/by-slug/${encodeURIComponent(slug)}`,
+      {
+        headers: tenantHeaders(tenantId),
+        next: { revalidate: 60 },
+      },
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    const result = await parseJson<{ data: CmsBlogPost }>(response);
+    return result.data;
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchRelatedBlogPosts(
+  postId: string,
+  tenantSlug?: string,
+): Promise<CmsBlogPostSummary[]> {
+  try {
+    const tenantId = await resolveTenantId(tenantSlug);
+    const response = await fetch(
+      `${API_URL}/api/v1/content/cms/blog-posts/${encodeURIComponent(postId)}/related?limit=3`,
+      {
+        headers: tenantHeaders(tenantId),
+        next: { revalidate: 300 },
+      },
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const result = await parseJson<{ data: CmsBlogPostSummary[] }>(response);
+    return result.data;
+  } catch {
+    return [];
+  }
+}
+
+export async function fetchStoreNavigation(
+  location: 'header' | 'footer',
+  tenantSlug?: string,
+): Promise<CmsNavLink[]> {
+  try {
+    const tenantId = await resolveTenantId(tenantSlug);
+    const response = await fetch(
+      `${API_URL}/api/v1/content/cms/navigation/${encodeURIComponent(location)}`,
+      {
+        headers: tenantHeaders(tenantId),
+        next: { revalidate: 300 },
+      },
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const result = await parseJson<{ data: { links: CmsNavLink[] } }>(response);
+    return result.data.links ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export function blogBodyText(post: CmsBlogPost): string {
+  const sections = post.body_json?.sections ?? [];
+  const richText = sections
+    .filter((section) => section.type === 'rich-text' && typeof section.content === 'string')
+    .map((section) => section.content as string)
+    .join('\n\n')
+    .trim();
+
+  return richText || post.excerpt || post.title;
+}
+
+export async function fetchBlogFeedXml(tenantSlug?: string): Promise<string | null> {
+  try {
+    const tenantId = await resolveTenantId(tenantSlug);
+    const response = await fetch(`${API_URL}/api/v1/content/cms/blog/feed.xml`, {
+      headers: tenantHeaders(tenantId),
+      next: { revalidate: 300 },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    return await response.text();
+  } catch {
+    return null;
+  }
 }

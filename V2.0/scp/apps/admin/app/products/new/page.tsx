@@ -20,6 +20,7 @@ export default function NewProductPage() {
   const [priceNgn, setPriceNgn] = useState('');
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
   const [inventoryQty, setInventoryQty] = useState('0');
+  const [tagsInput, setTagsInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 

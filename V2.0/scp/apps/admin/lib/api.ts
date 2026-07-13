@@ -20,6 +20,7 @@ export interface Product {
   price_kobo: number;
   status: 'draft' | 'published';
   inventory_qty: number;
+  tags?: string[] | null;
 }
 
 export interface ProductListResponse {
@@ -36,6 +37,7 @@ export interface ProductInput {
   price_kobo: number;
   status: 'draft' | 'published';
   inventory_qty: number;
+  tags?: string[];
 }
 
 export interface OrderItem {
@@ -1016,5 +1018,325 @@ export async function updateThemeSettings(
   });
 
   const result = await parseJson<ThemeResponse>(response);
+  return result.data;
+}
+
+export interface CmsPage {
+  id: string;
+  title: string;
+  slug: string;
+  content_type: string;
+  status: string;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_og_image_url: string | null;
+  seo_canonical_url: string | null;
+  published_at: string | null;
+  scheduled_publish_at: string | null;
+  scheduled_unpublish_at: string | null;
+  body_json: { sections?: Array<Record<string, unknown>> } | null;
+}
+
+export interface CmsPageListResponse {
+  data: CmsPage[];
+}
+
+export async function fetchCmsPages(tenantId: string): Promise<CmsPage[]> {
+  const response = await fetch(`${API_URL}/api/v1/content/cms/pages`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<CmsPageListResponse>(response);
+  return result.data;
+}
+
+export async function createCmsPage(
+  tenantId: string,
+  payload: {
+    title: string;
+    slug?: string;
+    status?: string;
+    seo_title?: string;
+    seo_description?: string;
+    body_json?: { sections: Array<{ type: string; content: string }> };
+    published_at?: string | null;
+  },
+): Promise<CmsPage> {
+  const response = await fetch(`${API_URL}/api/v1/content/cms/pages`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await parseJson<{ data: CmsPage }>(response);
+  return result.data;
+}
+
+export async function updateCmsPage(
+  tenantId: string,
+  pageId: string,
+  payload: {
+    title?: string;
+    slug?: string;
+    status?: string;
+    seo_title?: string | null;
+    seo_description?: string | null;
+    seo_og_image_url?: string | null;
+    seo_canonical_url?: string | null;
+    body_json?: { sections: Array<Record<string, unknown>> };
+    published_at?: string | null;
+    scheduled_publish_at?: string | null;
+    scheduled_unpublish_at?: string | null;
+  },
+): Promise<CmsPage> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/pages/${encodeURIComponent(pageId)}`,
+    {
+      method: 'PUT',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  const result = await parseJson<{ data: CmsPage }>(response);
+  return result.data;
+}
+
+export async function deleteCmsPage(tenantId: string, pageId: string): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/pages/${encodeURIComponent(pageId)}`,
+    {
+      method: 'DELETE',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+
+  if (!response.ok && response.status !== 204) {
+    throw new Error('Failed to delete page.');
+  }
+}
+
+export interface CmsBlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  author_name: string;
+  tags: string[] | null;
+  featured_image_url: string | null;
+  status: string;
+  published_at: string | null;
+  scheduled_publish_at?: string | null;
+  scheduled_unpublish_at?: string | null;
+  seo_title?: string | null;
+  seo_description?: string | null;
+  seo_og_image_url?: string | null;
+  seo_canonical_url?: string | null;
+  body_json?: { sections?: Array<{ type: string; content?: string }> } | null;
+}
+
+export interface CmsBlogPostListResponse {
+  data: CmsBlogPost[];
+}
+
+export async function fetchCmsBlogPosts(tenantId: string): Promise<CmsBlogPost[]> {
+  const response = await fetch(`${API_URL}/api/v1/content/cms/blog-posts`, {
+    headers: tenantHeaders(tenantId),
+  });
+
+  const result = await parseJson<CmsBlogPostListResponse>(response);
+  return result.data;
+}
+
+export async function createCmsBlogPost(
+  tenantId: string,
+  payload: {
+    title: string;
+    slug?: string;
+    author_name: string;
+    excerpt?: string;
+    tags?: string[];
+    status?: string;
+    published_at?: string | null;
+    body_json?: { sections: Array<{ type: string; content: string }> };
+  },
+): Promise<CmsBlogPost> {
+  const response = await fetch(`${API_URL}/api/v1/content/cms/blog-posts`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const result = await parseJson<{ data: CmsBlogPost }>(response);
+  return result.data;
+}
+
+export async function updateCmsBlogPost(
+  tenantId: string,
+  postId: string,
+  payload: {
+    title?: string;
+    slug?: string;
+    author_name?: string;
+    excerpt?: string | null;
+    tags?: string[];
+    featured_image_url?: string | null;
+    seo_title?: string | null;
+    seo_description?: string | null;
+    seo_og_image_url?: string | null;
+    seo_canonical_url?: string | null;
+    status?: string;
+    published_at?: string | null;
+    scheduled_publish_at?: string | null;
+    scheduled_unpublish_at?: string | null;
+    body_json?: { sections: Array<Record<string, unknown>> };
+  },
+): Promise<CmsBlogPost> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/blog-posts/${encodeURIComponent(postId)}`,
+    {
+      method: 'PUT',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  const result = await parseJson<{ data: CmsBlogPost }>(response);
+  return result.data;
+}
+
+export async function deleteCmsBlogPost(tenantId: string, postId: string): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/blog-posts/${encodeURIComponent(postId)}`,
+    {
+      method: 'DELETE',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+
+  if (!response.ok && response.status !== 204) {
+    throw new Error('Failed to delete blog post.');
+  }
+}
+
+export interface CmsNavLink {
+  label: string;
+  href: string;
+  open_in_new_tab?: boolean;
+}
+
+export interface CmsNavigationMenu {
+  id?: string;
+  location: string;
+  links: CmsNavLink[];
+}
+
+export async function fetchCmsNavigation(
+  tenantId: string,
+  location: 'header' | 'footer',
+): Promise<CmsNavigationMenu> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/navigation/${encodeURIComponent(location)}`,
+    { headers: tenantHeaders(tenantId) },
+  );
+
+  const result = await parseJson<{ data: CmsNavigationMenu }>(response);
+  return result.data;
+}
+
+export async function updateCmsNavigation(
+  tenantId: string,
+  location: 'header' | 'footer',
+  links: CmsNavLink[],
+): Promise<CmsNavigationMenu> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/navigation/${encodeURIComponent(location)}`,
+    {
+      method: 'PUT',
+      headers: {
+        ...tenantHeaders(tenantId),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ links }),
+    },
+  );
+
+  const result = await parseJson<{ data: CmsNavigationMenu }>(response);
+  return result.data;
+}
+
+export interface CmsContentVersion {
+  id: string;
+  version_number: number;
+  label: string | null;
+  created_at: string | null;
+  snapshot_json: Record<string, unknown>;
+}
+
+export async function fetchCmsPageVersions(
+  tenantId: string,
+  pageId: string,
+): Promise<CmsContentVersion[]> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/pages/${encodeURIComponent(pageId)}/versions`,
+    { headers: tenantHeaders(tenantId) },
+  );
+  const result = await parseJson<{ data: CmsContentVersion[] }>(response);
+  return result.data;
+}
+
+export async function restoreCmsPageVersion(
+  tenantId: string,
+  pageId: string,
+  versionId: string,
+): Promise<CmsPage> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/pages/${encodeURIComponent(pageId)}/versions/${encodeURIComponent(versionId)}/restore`,
+    {
+      method: 'POST',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+  const result = await parseJson<{ data: CmsPage }>(response);
+  return result.data;
+}
+
+export async function fetchCmsBlogPostVersions(
+  tenantId: string,
+  postId: string,
+): Promise<CmsContentVersion[]> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/blog-posts/${encodeURIComponent(postId)}/versions`,
+    { headers: tenantHeaders(tenantId) },
+  );
+  const result = await parseJson<{ data: CmsContentVersion[] }>(response);
+  return result.data;
+}
+
+export async function restoreCmsBlogPostVersion(
+  tenantId: string,
+  postId: string,
+  versionId: string,
+): Promise<CmsBlogPost> {
+  const response = await fetch(
+    `${API_URL}/api/v1/content/cms/blog-posts/${encodeURIComponent(postId)}/versions/${encodeURIComponent(versionId)}/restore`,
+    {
+      method: 'POST',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+  const result = await parseJson<{ data: CmsBlogPost }>(response);
   return result.data;
 }

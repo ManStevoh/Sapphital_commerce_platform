@@ -6,7 +6,6 @@ namespace Modules\Content\Cms\Http\Controllers;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Modules\Content\Cms\Enums\NavigationLocation;
 use Modules\Content\Cms\Models\NavigationMenu;
 use Symfony\Component\HttpFoundation\Response;

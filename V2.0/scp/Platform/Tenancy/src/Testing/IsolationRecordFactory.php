@@ -34,6 +34,7 @@ use Platform\FinancialServices\Models\Dispute;
 use Platform\FinancialServices\Models\Refund;
 use Platform\Tenancy\Models\CustomDomain;
 use Modules\Content\Cms\Models\BlogPost;
+use Modules\Content\Cms\Models\ContentVersion;
 use Modules\Content\Cms\Models\NavigationMenu;
 use Modules\Content\Cms\Models\Page;
 use Modules\Content\Cms\Enums\ContentStatus;
@@ -127,6 +128,14 @@ final class IsolationRecordFactory
                 'tenant_id' => $tenantId,
                 'location' => NavigationLocation::Header,
                 'links' => [['label' => 'Home', 'href' => '/']],
+            ]),
+            ContentVersion::class => ContentVersion::query()->create([
+                'tenant_id' => $tenantId,
+                'entity_type' => ContentVersion::ENTITY_PAGE,
+                'entity_id' => (string) $this->create(Page::class, $tenantId)->getKey(),
+                'version_number' => 1,
+                'snapshot_json' => ['title' => 'Isolation Snapshot'],
+                'label' => 'Isolation',
             ]),
             default => throw new InvalidArgumentException("No isolation seeder for {$modelClass}"),
         };

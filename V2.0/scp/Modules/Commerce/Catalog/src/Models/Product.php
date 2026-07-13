@@ -30,6 +30,7 @@ final class Product extends Model
         'status',
         'inventory_qty',
         'fulfillment_type',
+        'tags',
     ];
 
     /**
@@ -41,6 +42,7 @@ final class Product extends Model
             'tenant_id' => 'string',
             'price_kobo' => 'integer',
             'inventory_qty' => 'integer',
+            'tags' => 'array',
         ];
     }
 }

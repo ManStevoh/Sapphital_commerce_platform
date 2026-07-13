@@ -38,11 +38,60 @@ final class ProductController
                 'status',
                 'inventory_qty',
                 'fulfillment_type',
+                'tags',
             ]);
 
         return response()->json([
             'data' => $products,
         ]);
+    }
+
+    public function related(Request $request, string $id): JsonResponse
+    {
+        $tenantId = $this->tenantId($request);
+
+        if ($tenantId === null) {
+            return $this->missingTenantResponse();
+        }
+
+        $product = $this->findTenantProduct($tenantId, $id);
+
+        if ($product === null) {
+            return $this->notFoundResponse();
+        }
+
+        $tags = array_values(array_filter($product->tags ?? [], 'is_string'));
+        $limit = min(max((int) $request->integer('limit', 4), 1), 12);
+
+        $query = Product::query()
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'published')
+            ->where('id', '!=', $product->id);
+
+        if ($tags !== []) {
+            $query->where(function ($query) use ($tags): void {
+                foreach ($tags as $tag) {
+                    $query->orWhereJsonContains('tags', $tag);
+                }
+            });
+        }
+
+        $related = $query
+            ->orderBy('name')
+            ->limit($limit)
+            ->get([
+                'id',
+                'tenant_id',
+                'name',
+                'slug',
+                'price_kobo',
+                'status',
+                'inventory_qty',
+                'fulfillment_type',
+                'tags',
+            ]);
+
+        return response()->json(['data' => $related]);
     }
 
     public function store(Request $request): JsonResponse
@@ -71,6 +120,8 @@ final class ProductController
             'status' => ['required', Rule::in(['draft', 'published'])],
             'inventory_qty' => ['required', 'integer', 'min:0'],
             'fulfillment_type' => ['sometimes', Rule::in(['physical', 'digital'])],
+            'tags' => ['nullable', 'array', 'max:20'],
+            'tags.*' => ['string', 'max:64'],
         ]);
 
         $slug = $validated['slug'] ?? Str::slug($validated['name']);
@@ -83,6 +134,7 @@ final class ProductController
             'status' => $validated['status'],
             'inventory_qty' => $validated['inventory_qty'],
             'fulfillment_type' => $validated['fulfillment_type'] ?? 'physical',
+            'tags' => array_values($validated['tags'] ?? []),
         ]);
 
         return response()->json([
@@ -137,6 +189,8 @@ final class ProductController
             'status' => ['required', Rule::in(['draft', 'published'])],
             'inventory_qty' => ['required', 'integer', 'min:0'],
             'fulfillment_type' => ['sometimes', Rule::in(['physical', 'digital'])],
+            'tags' => ['nullable', 'array', 'max:20'],
+            'tags.*' => ['string', 'max:64'],
         ]);
 
         $product->update([
@@ -146,6 +200,9 @@ final class ProductController
             'status' => $validated['status'],
             'inventory_qty' => $validated['inventory_qty'],
             'fulfillment_type' => $validated['fulfillment_type'] ?? $product->fulfillment_type,
+            'tags' => array_key_exists('tags', $validated)
+                ? array_values($validated['tags'] ?? [])
+                : $product->tags,
         ]);
 
         return response()->json([
@@ -194,6 +251,7 @@ final class ProductController
             'status',
             'inventory_qty',
             'fulfillment_type',
+            'tags',
         ]);
     }
 

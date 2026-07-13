@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { headers } from 'next/headers';
-import { fetchProducts } from '@/lib/api';
+import { fetchProducts, fetchStoreNavigation } from '@/lib/api';
 import { HeroSection } from '@/components/theme/HeroSection';
 import { ProductGridSection } from '@/components/theme/ProductGridSection';
 import { StoreHeader } from '@/components/theme/StoreHeader';
@@ -33,6 +33,7 @@ export default async function StorefrontPage() {
   const tenantSlug = requestHeaders.get('x-tenant-slug');
   const storeName = requestHeaders.get('x-tenant-name') ?? 'Store';
   const themeBundle = await loadStorefrontTheme();
+  const navLinks = await fetchStoreNavigation('header', tenantSlug ?? undefined);
 
   let products: Awaited<ReturnType<typeof fetchProducts>> = [];
   let error: string | null = null;
@@ -49,6 +50,7 @@ export default async function StorefrontPage() {
         storeName={storeName}
         tenantSlug={tenantSlug}
         theme={themeBundle?.config ?? null}
+        navLinks={navLinks}
       />
 
       {error && <p style={{ color: 'var(--color-error)' }}>{error}</p>}

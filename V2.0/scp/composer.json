@@ -21,6 +21,7 @@
         "sapphital/commerce-checkout": "@dev",
         "sapphital/commerce-orders": "@dev",
         "sapphital/commerce-shipping": "@dev",
+        "sapphital/content-cms": "@dev",
         "sapphital/shared-money": "@dev"
     },
     "require-dev": {
@@ -30,8 +31,7 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/",
-            "Modules\\Content\\Cms\\": "Modules/Content/Cms/src/"
+            "App\\": "app/"
         }
     },
     "autoload-dev": {
@@ -71,6 +71,13 @@
         {
             "type": "path",
             "url": "Modules/Commerce/*",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "Modules/Content/*",
             "options": {
                 "symlink": true
             }

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
 import { AddToCartButton } from '@/components/AddToCartButton';
-import { fetchProduct, formatNgn } from '@/lib/api';
+import { fetchProduct, fetchRelatedProducts, formatNgn } from '@/lib/api';
 
 interface ProductDetailPageProps {
   params: Promise<{ id: string }>;
@@ -45,6 +45,7 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
       notFound();
     }
 
+    const related = await fetchRelatedProducts(product.id, tenantSlug ?? undefined);
     const inStock = product.inventory_qty > 0;
     const jsonLd = {
       '@context': 'https://schema.org',
@@ -79,11 +80,40 @@ export default async function ProductDetailPage({ params }: ProductDetailPagePro
           {inStock ? `${product.inventory_qty} in stock` : 'Out of stock'}
         </p>
 
+        {product.tags && product.tags.length > 0 && (
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            {product.tags.map((tag) => `#${tag}`).join(' ')}
+          </p>
+        )}
+
         <AddToCartButton
           productId={product.id}
           tenantId={product.tenant_id}
           disabled={!inStock}
         />
+
+        {related.length > 0 && (
+          <section style={{ marginTop: '2.5rem' }}>
+            <h2>Related products</h2>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {related.map((item) => (
+                <li
+                  key={item.id}
+                  style={{
+                    borderTop: '1px solid var(--color-border, #e5e7eb)',
+                    padding: '0.75rem 0',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
+                  }}
+                >
+                  <Link href={`/products/${item.id}`}>{item.name}</Link>
+                  <span>{formatNgn(item.price_kobo)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
     );
   } catch {

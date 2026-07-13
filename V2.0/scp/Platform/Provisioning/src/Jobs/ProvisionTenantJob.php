@@ -11,6 +11,9 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
 use Modules\Commerce\Catalog\Models\Product;
+use Modules\Content\Cms\Enums\ContentStatus;
+use Modules\Content\Cms\Enums\PageContentType;
+use Modules\Content\Cms\Models\Page;
 use Platform\Provisioning\Enums\ProvisioningRunStatus;
 use Platform\Provisioning\Models\ProvisioningRun;
 use Platform\Tenancy\Models\Tenant;
@@ -93,13 +96,67 @@ final class ProvisionTenantJob implements ShouldQueue
                 ],
             ];
 
+            $defaultPages = [
+                [
+                    'slug' => 'about',
+                    'title' => 'About Us',
+                    'content_type' => PageContentType::Page,
+                    'body' => 'Welcome to our store. We are proud to serve customers across Nigeria.',
+                ],
+                [
+                    'slug' => 'contact',
+                    'title' => 'Contact Us',
+                    'content_type' => PageContentType::Page,
+                    'body' => 'Reach us by email or phone. We typically respond within one business day.',
+                ],
+                [
+                    'slug' => 'privacy',
+                    'title' => 'Privacy Policy',
+                    'content_type' => PageContentType::Legal,
+                    'body' => 'We process personal data in line with the Nigeria Data Protection Act (NDPA).',
+                ],
+                [
+                    'slug' => 'shipping-policy',
+                    'title' => 'Shipping Policy',
+                    'content_type' => PageContentType::Legal,
+                    'body' => 'Orders ship within Lagos in 1–3 business days. Nationwide delivery in 3–7 business days.',
+                ],
+                [
+                    'slug' => 'return-policy',
+                    'title' => 'Return Policy',
+                    'content_type' => PageContentType::Legal,
+                    'body' => 'Contact the store within 14 days of delivery for return eligibility on physical goods.',
+                ],
+            ];
+
+            foreach ($defaultPages as $defaultPage) {
+                Page::query()->create([
+                    'tenant_id' => $run->tenant_id,
+                    'title' => $defaultPage['title'],
+                    'slug' => $defaultPage['slug'],
+                    'content_type' => $defaultPage['content_type'],
+                    'body_json' => [
+                        'sections' => [
+                            ['type' => 'rich-text', 'content' => $defaultPage['body']],
+                        ],
+                    ],
+                    'seo_title' => $defaultPage['title'],
+                    'status' => ContentStatus::Published,
+                    'published_at' => now(),
+                ]);
+            }
+
             $steps['create_pages'] = [
                 'completed' => true,
                 'data' => [
-                    'pages' => [
-                        ['slug' => 'about', 'title' => 'About Us'],
-                        ['slug' => 'contact', 'title' => 'Contact Us'],
-                    ],
+                    'pages' => array_map(
+                        static fn (array $page): array => [
+                            'slug' => $page['slug'],
+                            'title' => $page['title'],
+                        ],
+                        $defaultPages,
+                    ),
+                    'count' => count($defaultPages),
                 ],
             ];
 

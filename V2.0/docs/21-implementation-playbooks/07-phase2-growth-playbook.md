@@ -43,30 +43,30 @@ Build per [Volume 7](../07-cms/README.md) and [ADR-012](../00-meta/adr/012-hybri
 
 **Checklist:**
 
-- [ ] `Page` entity: `title`, `slug`, `body_json`, `seo_title`, `seo_description`, `status`, `published_at`
-- [ ] `BlogPost` entity with author, tags, featured image
-- [ ] `NavigationMenu` entity for header/footer links
-- [ ] Content types: page, blog post, legal page (privacy, terms template)
-- [ ] Hybrid model: CMS pages use theme sections for layout ([ADR-012](../00-meta/adr/012-hybrid-cms-theme-sections-content-types.md))
-- [ ] Tenant isolation on all content entities
+- [x] `Page` entity: `title`, `slug`, `body_json`, `seo_title`, `seo_description`, `status`, `published_at`
+- [x] `BlogPost` entity with author, tags, featured image
+- [x] `NavigationMenu` entity for header/footer links
+- [x] Content types: page, blog post, legal page (privacy, terms template)
+- [x] Hybrid model: CMS pages use theme sections for layout ([ADR-012](../00-meta/adr/012-hybrid-cms-theme-sections-content-types.md))
+- [x] Tenant isolation on all content entities
 
 ### 1.2 Page Builder UI
 
-- [ ] Drag-and-drop section editor reusing theme section types from Volume 6
-- [ ] New section types: `rich-text`, `image-banner`, `faq-accordion`, `testimonials`, `video-embed`
-- [ ] Live preview with mobile/desktop toggle
-- [ ] SEO panel: meta title, description, OG image, canonical URL
-- [ ] Schedule publish and unpublish
-- [ ] Version history (last 10 versions Phase 2)
-- [ ] Default pages seeded: About, Contact, Privacy Policy, Shipping Policy, Return Policy
+- [x] Drag-and-drop section editor reusing theme section types from Volume 6
+- [x] New section types: `rich-text`, `image-banner`, `faq-accordion`, `testimonials`, `video-embed`
+- [x] Live preview with mobile/desktop toggle
+- [x] SEO panel: meta title, description, OG image, canonical URL
+- [x] Schedule publish and unpublish
+- [x] Version history (last 10 versions Phase 2)
+- [x] Default pages seeded: About, Contact, Privacy Policy, Shipping Policy, Return Policy
 
 ### 1.3 Blog & SEO
 
-- [ ] Blog index at `/blog` with pagination
-- [ ] Blog post template with author, date, tags, related posts
-- [ ] RSS feed at `/blog/feed.xml`
-- [ ] Sitemap includes CMS pages and blog posts
-- [ ] Structured data: `Article`, `BreadcrumbList`
+- [x] Blog index at `/blog` with pagination
+- [x] Blog post template with author, date, tags, related posts
+- [x] RSS feed at `/blog/feed.xml`
+- [x] Sitemap includes CMS pages and blog posts
+- [x] Structured data: `Article`, `BreadcrumbList`
 
 **Gate §1:** Merchant publishes landing page with hero + FAQ → indexed in sitemap → Lighthouse SEO ≥ 90.
 

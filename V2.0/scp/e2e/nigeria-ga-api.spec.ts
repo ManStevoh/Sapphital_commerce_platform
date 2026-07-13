@@ -393,4 +393,94 @@ test.describe('Nigeria GA — API E2E (request only)', () => {
       data: { status: 'completed' },
     });
   });
+
+  test('provisioning seeds CMS pages and merchant can publish blog post', async ({ request }) => {
+    const suffix = randomUUID().slice(0, 8);
+    const merchantEmail = `nigeria-ga-cms-${suffix}@example.com`;
+    const merchantPassword = 'secure-password-123';
+
+    const signup = await request.post(`${BASE_URL}/api/v1/signup`, {
+      data: {
+        email: merchantEmail,
+        password: merchantPassword,
+        store_name: `CMS Shop ${suffix}`,
+        plan_slug: 'starter',
+      },
+    });
+    expect(signup.status()).toBe(202);
+    const signupBody = await signup.json();
+    const tenantId = signupBody.tenant_id as string;
+    const pollUrl = signupBody.poll_url as string;
+    const handoffToken = signupBody.admin_handoff_token as string;
+
+    await pollProvisioning(request, pollUrl);
+
+    const cmsHealth = await request.get(`${BASE_URL}/api/v1/content/cms/health`);
+    expect(cmsHealth.ok()).toBeTruthy();
+    await expect(cmsHealth.json()).resolves.toMatchObject({ package: 'cms' });
+
+    const publishedPages = await request.get(`${BASE_URL}/api/v1/content/cms/pages/published`, {
+      headers: { 'X-Tenant-ID': tenantId },
+    });
+    expect(publishedPages.ok()).toBeTruthy();
+    const pages = (await publishedPages.json()).data as Array<{ slug: string }>;
+    expect(pages.length).toBeGreaterThanOrEqual(5);
+    expect(pages.some((page) => page.slug === 'about')).toBeTruthy();
+
+    const aboutPage = await request.get(`${BASE_URL}/api/v1/content/cms/pages/by-slug/about`, {
+      headers: { 'X-Tenant-ID': tenantId },
+    });
+    expect(aboutPage.ok()).toBeTruthy();
+
+    const handoff = await request.post(`${BASE_URL}/api/v1/auth/merchant/handoff`, {
+      data: { handoff_token: handoffToken },
+    });
+    expect(handoff.ok()).toBeTruthy();
+    const merchantToken = (await handoff.json()).token as string;
+
+    const merchantHeaders = {
+      Authorization: `Bearer ${merchantToken}`,
+      'X-Tenant-ID': tenantId,
+      'Content-Type': 'application/json',
+    };
+
+    await request.post(`${BASE_URL}/api/v1/platform/billing/subscriptions/${tenantId}/activate`, {
+      headers: merchantHeaders,
+      data: { paystack_reference: `saas_cms_e2e_${suffix}` },
+    });
+
+    const createPost = await request.post(`${BASE_URL}/api/v1/content/cms/blog-posts`, {
+      headers: merchantHeaders,
+      data: {
+        title: 'Launch Story',
+        slug: `launch-story-${suffix}`,
+        author_name: 'Store Owner',
+        excerpt: 'How we opened our shop.',
+        tags: ['news'],
+        seo_og_image_url: 'https://cdn.example.test/og-launch.jpg',
+        seo_canonical_url: `https://shop.example.test/blog/launch-story-${suffix}`,
+        status: 'published',
+        published_at: new Date().toISOString(),
+        body_json: {
+          sections: [{ type: 'rich-text', content: 'We are live.' }],
+        },
+      },
+    });
+    expect(createPost.status()).toBe(201);
+
+    const publishedPosts = await request.get(`${BASE_URL}/api/v1/content/cms/blog-posts/published`, {
+      headers: { 'X-Tenant-ID': tenantId },
+    });
+    expect(publishedPosts.ok()).toBeTruthy();
+    const posts = (await publishedPosts.json()).data as Array<{ slug: string }>;
+    expect(posts.some((post) => post.slug === `launch-story-${suffix}`)).toBeTruthy();
+
+    const feed = await request.get(`${BASE_URL}/api/v1/content/cms/blog/feed.xml`, {
+      headers: { 'X-Tenant-ID': tenantId },
+    });
+    expect(feed.ok()).toBeTruthy();
+    const feedXml = await feed.text();
+    expect(feedXml).toContain('Launch Story');
+    expect(feedXml).toContain(`launch-story-${suffix}`);
+  });
 });
