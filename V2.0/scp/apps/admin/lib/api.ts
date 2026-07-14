@@ -1105,16 +1105,46 @@ export interface ThemeSettings {
   logo_url: string | null;
 }
 
+export interface ThemeCatalogEntry {
+  id: string;
+  name: string;
+  version: string;
+  description: string;
+  market: string;
+  vertical: string | null;
+  colors: Record<string, string>;
+  sections: string[];
+}
+
 export interface ThemeConfig {
   theme_id: string;
   id: string;
   name: string;
+  vertical?: string | null;
+  sections?: string[];
   settings: ThemeSettings;
   colors: Record<string, string>;
 }
 
+export interface ThemePortabilityReport {
+  from_theme_id: string;
+  to_theme_id: string;
+  retained_settings: string[];
+  retained_content: Record<string, boolean>;
+  dropped_section_types: string[];
+  message: string;
+}
+
 export interface ThemeResponse {
   data: ThemeConfig;
+}
+
+export async function fetchThemeCatalog(): Promise<ThemeCatalogEntry[]> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/storefront/themes`, {
+    headers: { Accept: 'application/json' },
+  });
+  const result = await parseJson<{ data: ThemeCatalogEntry[] }>(response);
+  return result.data;
 }
 
 export async function fetchTheme(tenantId: string): Promise<ThemeConfig> {
@@ -1124,6 +1154,35 @@ export async function fetchTheme(tenantId: string): Promise<ThemeConfig> {
 
   const result = await parseJson<ThemeResponse>(response);
   return result.data;
+}
+
+export async function previewTheme(tenantId: string, themeId: string): Promise<ThemeConfig> {
+  const response = await fetch(
+    `${API_URL}/api/v1/commerce/storefront/themes/${encodeURIComponent(themeId)}/preview`,
+    {
+      headers: tenantHeaders(tenantId),
+    },
+  );
+  const result = await parseJson<ThemeResponse>(response);
+  return result.data;
+}
+
+export async function applyTheme(
+  tenantId: string,
+  themeId: string,
+): Promise<{ theme: ThemeConfig; portability: ThemePortabilityReport }> {
+  const response = await fetch(`${API_URL}/api/v1/commerce/storefront/theme`, {
+    method: 'PUT',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ theme_id: themeId }),
+  });
+  const result = await parseJson<{ data: ThemeConfig; portability: ThemePortabilityReport }>(
+    response,
+  );
+  return { theme: result.data, portability: result.portability };
 }
 
 export async function updateThemeSettings(

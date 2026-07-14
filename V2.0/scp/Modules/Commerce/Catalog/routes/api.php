@@ -20,6 +20,9 @@ Route::middleware('tenant.context')->group(function (): void {
     Route::get('/v1/commerce/storefront/theme', [StorefrontController::class, 'theme'])
         ->name('storefront.theme.show');
 
+    Route::get('/v1/commerce/storefront/themes/{themeId}/preview', [StorefrontController::class, 'preview'])
+        ->name('storefront.themes.preview');
+
     Route::get('/v1/commerce/catalog/products', [ProductController::class, 'index'])
         ->name('catalog.products.index');
 
@@ -93,5 +96,8 @@ Route::middleware('tenant.context')->group(function (): void {
 
         Route::put('/v1/commerce/storefront/theme/settings', [StorefrontController::class, 'updateThemeSettings'])
             ->name('storefront.theme.settings.update');
+
+        Route::put('/v1/commerce/storefront/theme', [StorefrontController::class, 'applyTheme'])
+            ->name('storefront.theme.apply');
     });
 });

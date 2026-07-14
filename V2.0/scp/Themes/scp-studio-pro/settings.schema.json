@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Studio Pro Theme Settings",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "primary_color": {
+      "type": "string",
+      "title": "Primary colour",
+      "pattern": "^#[0-9A-Fa-f]{6}$",
+      "default": "#1C2541"
+    },
+    "font_heading": {
+      "type": "string",
+      "title": "Heading font",
+      "enum": ["Inter", "DM Sans", "Playfair Display", "Source Sans 3"],
+      "default": "Source Sans 3"
+    },
+    "logo_url": {
+      "type": ["string", "null"],
+      "title": "Logo URL",
+      "format": "uri",
+      "default": null
+    }
+  },
+  "required": ["primary_color", "font_heading"]
+}

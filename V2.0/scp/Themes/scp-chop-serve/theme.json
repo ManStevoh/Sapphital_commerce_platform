@@ -1,0 +1,39 @@
+{
+  "id": "scp-chop-serve",
+  "name": "Chop & Serve",
+  "version": "0.1.0",
+  "schema_version": "1.0",
+  "author": "SAPPHITAL",
+  "description": "Appetite-led food theme for restaurants, bakeries, and meal delivery — menu groups, dietary filters, hours, and delivery radius.",
+  "market": "NG",
+  "vertical": "food",
+  "templates": [
+    "index",
+    "product",
+    "collection",
+    "cart",
+    "checkout",
+    "page"
+  ],
+  "settings_schema": "settings.schema.json",
+  "defaults": "defaults.json",
+  "colors": {
+    "primary": "#9B2226",
+    "secondary": "#BB3E03",
+    "accent": "#CA6702",
+    "background": "#FFF8F0",
+    "foreground": "#1A1A1A"
+  },
+  "sections": [
+    "announcement-bar",
+    "header",
+    "hero",
+    "opening-hours",
+    "menu-groups",
+    "dietary-filter",
+    "best-sellers",
+    "delivery-radius",
+    "reviews-summary",
+    "footer"
+  ]
+}

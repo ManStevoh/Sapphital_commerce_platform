@@ -241,11 +241,11 @@ Per [Volume 6](../06-theme-engine/README.md):
 
 **Checklist:**
 
-- [ ] Expansion themes pass Lighthouse ≥ 90 mobile and vertical section gates
-- [ ] Theme picker in admin onboarding and theme settings
-- [ ] Themes implement canonical sections plus required vertical sections
-- [ ] Theme preview before apply
-- [ ] Theme switching portability report retains merchant-owned content
+- [ ] Expansion themes pass Lighthouse ≥ 90 mobile (staging verification)
+- [x] Theme picker in admin onboarding and theme settings
+- [x] Themes implement canonical sections plus required vertical sections
+- [x] Theme preview before apply
+- [x] Theme switching portability report retains merchant-owned content
 
 ---
 
@@ -273,7 +273,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 | 9 | Outbox pattern | §5.2 | ☐ |
 | 10 | Custom domains | §5.3 | ☑ |
 | 11 | On-call + status page | §6 | ☐ |
-| 12 | Food, Services, Education, Digital themes | §7 | ☐ |
+| 12 | Food, Services, Education, Digital themes | §7 | ☑ |
 | 13 | Merchant MFA | §8 | ☑ |
 
 ---

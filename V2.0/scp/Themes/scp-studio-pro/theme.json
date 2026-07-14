@@ -1,0 +1,39 @@
+{
+  "id": "scp-studio-pro",
+  "name": "Studio Pro",
+  "version": "0.1.0",
+  "schema_version": "1.0",
+  "author": "SAPPHITAL",
+  "description": "Authority-led services theme for agencies and consultants — case studies, outcomes, team, and booking CTA.",
+  "market": "NG",
+  "vertical": "services",
+  "templates": [
+    "index",
+    "product",
+    "collection",
+    "cart",
+    "checkout",
+    "page"
+  ],
+  "settings_schema": "settings.schema.json",
+  "defaults": "defaults.json",
+  "colors": {
+    "primary": "#1C2541",
+    "secondary": "#3A506B",
+    "accent": "#5BC0BE",
+    "background": "#F7F9FC",
+    "foreground": "#0B132B"
+  },
+  "sections": [
+    "announcement-bar",
+    "header",
+    "hero",
+    "services-grid",
+    "process-steps",
+    "case-studies",
+    "team",
+    "booking-cta",
+    "testimonials",
+    "footer"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "scp-launchpad",
+  "name": "Launchpad",
+  "version": "0.1.0",
+  "schema_version": "1.0",
+  "author": "SAPPHITAL",
+  "description": "Product-demo theme for software and digital downloads — feature comparison, interactive demo, licenses, and changelog.",
+  "market": "NG",
+  "vertical": "digital",
+  "templates": [
+    "index",
+    "product",
+    "collection",
+    "cart",
+    "checkout",
+    "page"
+  ],
+  "settings_schema": "settings.schema.json",
+  "defaults": "defaults.json",
+  "colors": {
+    "primary": "#023E8A",
+    "secondary": "#0077B6",
+    "accent": "#00B4D8",
+    "background": "#F1FAEE",
+    "foreground": "#03045E"
+  },
+  "sections": [
+    "announcement-bar",
+    "header",
+    "hero",
+    "interactive-demo",
+    "feature-comparison",
+    "license-options",
+    "changelog",
+    "trust-bar",
+    "faq",
+    "footer"
+  ]
+}

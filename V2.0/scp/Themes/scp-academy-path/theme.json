@@ -1,0 +1,39 @@
+{
+  "id": "scp-academy-path",
+  "name": "Academy Path",
+  "version": "0.1.0",
+  "schema_version": "1.0",
+  "author": "SAPPHITAL",
+  "description": "Progression-led education theme for courses, schools, and bootcamps — curriculum, instructors, outcomes, and cohorts.",
+  "market": "NG",
+  "vertical": "education",
+  "templates": [
+    "index",
+    "product",
+    "collection",
+    "cart",
+    "checkout",
+    "page"
+  ],
+  "settings_schema": "settings.schema.json",
+  "defaults": "defaults.json",
+  "colors": {
+    "primary": "#0A9396",
+    "secondary": "#005F73",
+    "accent": "#EE9B00",
+    "background": "#F8FFFE",
+    "foreground": "#001219"
+  },
+  "sections": [
+    "announcement-bar",
+    "header",
+    "hero",
+    "learning-outcomes",
+    "course-curriculum",
+    "instructor-profile",
+    "cohort-dates",
+    "testimonials",
+    "faq",
+    "footer"
+  ]
+}

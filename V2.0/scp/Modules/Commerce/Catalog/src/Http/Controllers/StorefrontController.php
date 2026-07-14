@@ -53,6 +53,85 @@ final class StorefrontController
         ]);
     }
 
+    public function preview(Request $request, string $themeId): JsonResponse
+    {
+        $tenantId = $this->tenantId($request);
+
+        if ($tenantId === null) {
+            return $this->missingTenantResponse();
+        }
+
+        if (! $this->themeResolver->themeExists($themeId)) {
+            return response()->json([
+                'message' => "Theme package not found: {$themeId}",
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $tenant = Tenant::query()->find($tenantId);
+
+        if ($tenant === null) {
+            return response()->json([
+                'message' => 'Tenant not found.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $settings = is_array($tenant->settings) ? $tenant->settings : [];
+        $previewTenant = $tenant->replicate();
+        $previewTenant->settings = array_merge($settings, ['theme_id' => $themeId]);
+
+        try {
+            $config = $this->themeResolver->resolveForTenant($previewTenant);
+        } catch (InvalidArgumentException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return response()->json([
+            'data' => $config,
+            'meta' => [
+                'preview' => true,
+                'active_theme_id' => is_string($settings['theme_id'] ?? null)
+                    ? $settings['theme_id']
+                    : ThemeResolver::DEFAULT_THEME_ID,
+            ],
+        ]);
+    }
+
+    public function applyTheme(Request $request): JsonResponse
+    {
+        $tenantId = $this->tenantId($request);
+
+        if ($tenantId === null) {
+            return $this->missingTenantResponse();
+        }
+
+        $tenant = Tenant::query()->find($tenantId);
+
+        if ($tenant === null) {
+            return response()->json([
+                'message' => 'Tenant not found.',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $validated = $request->validate([
+            'theme_id' => ['required', 'string', 'max:64'],
+        ]);
+
+        try {
+            $result = $this->themeResolver->applyTheme($tenant, $validated['theme_id']);
+        } catch (InvalidArgumentException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        return response()->json([
+            'data' => $result['theme'],
+            'portability' => $result['portability'],
+        ]);
+    }
+
     public function updateThemeSettings(Request $request): JsonResponse
     {
         $tenantId = $this->tenantId($request);
