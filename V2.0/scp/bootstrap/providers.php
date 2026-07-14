@@ -22,6 +22,8 @@ return [
 
     Platform\Ai\AiServiceProvider::class,
 
+    Platform\Messaging\MessagingServiceProvider::class,
+
     Connectors\Paystack\PaystackServiceProvider::class,
 
     Connectors\Flutterwave\FlutterwaveServiceProvider::class,

@@ -119,10 +119,43 @@ final class OrderService
 
         $order = $order->fresh(['items']);
 
+        $this->maybeWriteOrderPaidOutbox($order);
         $this->maybeCreateShipmentFromOrder($order);
         $this->maybeSendOrderConfirmation($order);
 
         return $order;
+    }
+
+    private function maybeWriteOrderPaidOutbox(Order $order): void
+    {
+        $writerClass = 'Platform\\Messaging\\Services\\OutboxWriter';
+
+        if (! class_exists($writerClass)) {
+            return;
+        }
+
+        try {
+            app($writerClass)->write(
+                $order->tenant_id,
+                'order',
+                $order->id,
+                'order.paid',
+                [
+                    'id' => $order->id,
+                    'object' => 'order',
+                    'order_number' => $order->order_number,
+                    'status' => $order->status,
+                    'currency' => $order->currency,
+                    'total_kobo' => $order->total_kobo,
+                    'customer_email' => $order->customer_email,
+                    'payment' => [
+                        'reference' => $order->paystack_reference,
+                    ],
+                ],
+            );
+        } catch (\Throwable) {
+            // Outbox failure must not block payment completion.
+        }
     }
 
     private function maybeSendOrderConfirmation(Order $order): void

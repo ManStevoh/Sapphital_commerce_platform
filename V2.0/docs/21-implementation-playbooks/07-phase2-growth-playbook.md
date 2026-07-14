@@ -194,9 +194,9 @@ Phase 2 (500–5,000 merchants):
 
 Per [Volume 3 Ch. 07](../03-architecture/07-event-driven-communication.md):
 
-- [ ] Outbox table for guaranteed external event delivery
-- [ ] Outbox poller publishes to webhook endpoints
-- [ ] At-least-once delivery with consumer idempotency
+- [x] Outbox table for guaranteed external event delivery
+- [x] Outbox poller publishes to webhook endpoints
+- [x] At-least-once delivery with consumer idempotency
 
 ### 5.3 Custom Domains
 
@@ -270,7 +270,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 | 6 | Digital products + gift cards | §4 | ☑ |
 | 7 | Customer accounts | §4 | ☑ |
 | 8 | Infra Phase 2 topology | Gate §5 | ☐ |
-| 9 | Outbox pattern | §5.2 | ☐ |
+| 9 | Outbox pattern | §5.2 | ☑ |
 | 10 | Custom domains | §5.3 | ☑ |
 | 11 | On-call + status page | §6 | ☐ |
 | 12 | Food, Services, Education, Digital themes | §7 | ☑ |

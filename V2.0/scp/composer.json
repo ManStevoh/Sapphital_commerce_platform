@@ -32,7 +32,8 @@
     "autoload": {
         "psr-4": {
             "App\\": "app/",
-            "Platform\\Ai\\": "Platform/Ai/src/"
+            "Platform\\Ai\\": "Platform/Ai/src/",
+            "Platform\\Messaging\\": "Platform/Messaging/src/"
         }
     },
     "autoload-dev": {

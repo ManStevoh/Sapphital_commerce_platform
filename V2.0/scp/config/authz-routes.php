@@ -56,6 +56,10 @@ return [
 
     'secrets.health.show' => ['method' => 'GET', 'uri' => '/api/v1/platform/secrets/health', 'archetype' => 'public'],
     'notifications.health.show' => ['method' => 'GET', 'uri' => '/api/v1/platform/notifications/health', 'archetype' => 'public'],
+    'messaging.health.show' => ['method' => 'GET', 'uri' => '/api/v1/platform/messaging/health', 'archetype' => 'public'],
+    'messaging.webhook-endpoints.index' => ['method' => 'GET', 'uri' => '/api/v1/commerce/webhook-endpoints', 'archetype' => 'merchant'],
+    'messaging.webhook-endpoints.store' => ['method' => 'POST', 'uri' => '/api/v1/commerce/webhook-endpoints', 'archetype' => 'merchant'],
+    'messaging.webhook-endpoints.destroy' => ['method' => 'DELETE', 'uri' => '/api/v1/commerce/webhook-endpoints/00000000-0000-4000-8000-000000000001', 'archetype' => 'merchant'],
 
     'financial-services.health.show' => ['method' => 'GET', 'uri' => '/api/v1/platform/financial-services/health', 'archetype' => 'public'],
     'webhooks.paystack' => ['method' => 'POST', 'uri' => '/api/v1/webhooks/paystack', 'archetype' => 'public'],

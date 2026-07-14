@@ -17,3 +17,4 @@ Schedule::command('cms:process-scheduled-content')->everyMinute();
 Schedule::command('catalog:process-scheduled-collections')->everyMinute();
 Schedule::command('checkout:expire-gift-cards')->hourly();
 Schedule::command('tenancy:verify-custom-domains')->everyFiveMinutes();
+Schedule::command('messaging:poll-outbox')->everyMinute();
