@@ -18,3 +18,4 @@ Schedule::command('catalog:process-scheduled-collections')->everyMinute();
 Schedule::command('checkout:expire-gift-cards')->hourly();
 Schedule::command('tenancy:verify-custom-domains')->everyFiveMinutes();
 Schedule::command('messaging:poll-outbox')->everyMinute();
+Schedule::command('ops:synthetic-checkout-probe')->everyFiveMinutes();

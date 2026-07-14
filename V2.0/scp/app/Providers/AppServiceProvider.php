@@ -27,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \App\Console\Commands\LaunchReadinessCommand::class,
+                \App\Console\Commands\SyntheticCheckoutProbeCommand::class,
             ]);
         }
     }
