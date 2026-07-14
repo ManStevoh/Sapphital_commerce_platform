@@ -150,6 +150,7 @@ final class LaunchReadinessCommand extends Command
             'cms:process-scheduled-content',
             'catalog:process-scheduled-collections',
             'checkout:expire-gift-cards',
+            'tenancy:verify-custom-domains',
         ];
 
         $consoleRoutes = (string) file_get_contents(base_path('routes/console.php'));

@@ -202,10 +202,10 @@ Per [Volume 3 Ch. 07](../03-architecture/07-event-driven-communication.md):
 
 Per [Volume 16 Ch. 07](../16-saas-multi-tenancy/07-custom-domains.md):
 
-- [ ] DNS verification via TXT record
-- [ ] Cloudflare SSL certificate provisioning
-- [ ] Custom domain routing in storefront middleware
-- [ ] Growth plan entitlement check
+- [x] DNS verification via TXT record
+- [x] Cloudflare SSL certificate provisioning
+- [x] Custom domain routing in storefront middleware
+- [x] Growth plan entitlement check
 
 **Gate §5:** k6 load test: 2,000 concurrent shoppers, p95 API < 500ms on Phase 2 staging.
 
@@ -271,7 +271,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 | 7 | Customer accounts | §4 | ☑ |
 | 8 | Infra Phase 2 topology | Gate §5 | ☐ |
 | 9 | Outbox pattern | §5.2 | ☐ |
-| 10 | Custom domains | §5.3 | ☐ |
+| 10 | Custom domains | §5.3 | ☑ |
 | 11 | On-call + status page | §6 | ☐ |
 | 12 | Food, Services, Education, Digital themes | §7 | ☐ |
 | 13 | Merchant MFA | §8 | ☐ |

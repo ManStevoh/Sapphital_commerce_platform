@@ -31,6 +31,11 @@ return [
 
     'tenancy.health.show' => ['method' => 'GET', 'uri' => '/api/v1/platform/tenancy/health', 'archetype' => 'public'],
     'tenancy.tenants.show-by-slug' => ['method' => 'GET', 'uri' => '/api/v1/platform/tenancy/tenants/by-slug/demo-store', 'archetype' => 'public'],
+    'tenancy.tenants.show-by-host' => ['method' => 'GET', 'uri' => '/api/v1/platform/tenancy/tenants/by-host?host=www.example.ng', 'archetype' => 'public'],
+    'tenancy.domains.index' => ['method' => 'GET', 'uri' => '/api/v1/platform/tenancy/domains', 'archetype' => 'merchant'],
+    'tenancy.domains.store' => ['method' => 'POST', 'uri' => '/api/v1/platform/tenancy/domains', 'archetype' => 'merchant'],
+    'tenancy.domains.verify' => ['method' => 'POST', 'uri' => '/api/v1/platform/tenancy/domains/00000000-0000-4000-8000-000000000001/verify', 'archetype' => 'merchant'],
+    'tenancy.domains.destroy' => ['method' => 'DELETE', 'uri' => '/api/v1/platform/tenancy/domains/00000000-0000-4000-8000-000000000001', 'archetype' => 'merchant'],
     'tenancy.platform.tenants.index' => ['method' => 'GET', 'uri' => '/api/v1/platform/tenants', 'archetype' => 'platform'],
     'tenancy.platform.tenants.update-status' => ['method' => 'PATCH', 'uri' => '/api/v1/platform/tenants/00000000-0000-4000-8000-000000000001/status', 'archetype' => 'platform'],
 

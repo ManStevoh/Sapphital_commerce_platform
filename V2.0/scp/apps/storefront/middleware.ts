@@ -27,10 +27,34 @@ function extractSlugFromHost(host: string): string | null {
   return slug;
 }
 
-async function lookupTenant(slug: string): Promise<TenantLookup | 'not_found' | 'error'> {
+async function lookupTenantBySlug(slug: string): Promise<TenantLookup | 'not_found' | 'error'> {
   try {
     const response = await fetch(
       `${API_URL}/api/v1/platform/tenancy/tenants/by-slug/${encodeURIComponent(slug)}`,
+      {
+        headers: { Accept: 'application/json' },
+        cache: 'no-store',
+      },
+    );
+
+    if (response.status === 404) {
+      return 'not_found';
+    }
+
+    if (!response.ok) {
+      return 'error';
+    }
+
+    return (await response.json()) as TenantLookup;
+  } catch {
+    return 'error';
+  }
+}
+
+async function lookupTenantByHost(host: string): Promise<TenantLookup | 'not_found' | 'error'> {
+  try {
+    const response = await fetch(
+      `${API_URL}/api/v1/platform/tenancy/tenants/by-host?host=${encodeURIComponent(host)}`,
       {
         headers: { Accept: 'application/json' },
         cache: 'no-store',
@@ -65,21 +89,28 @@ export async function middleware(request: NextRequest) {
   }
 
   const host = request.headers.get('host') ?? '';
+  const hostname = host.split(':')[0].toLowerCase();
   const slug =
     extractSlugFromHost(host) ??
     process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG ??
     null;
 
-  if (!slug) {
+  let tenant: TenantLookup | 'not_found' | 'error';
+
+  if (slug) {
+    tenant = await lookupTenantBySlug(slug);
+  } else if (hostname && !hostname.endsWith(SHOPS_DOMAIN_SUFFIX)) {
+    tenant = await lookupTenantByHost(hostname);
+  } else {
     return NextResponse.next();
   }
-
-  const tenant = await lookupTenant(slug);
 
   if (tenant === 'not_found') {
     const url = request.nextUrl.clone();
     url.pathname = '/store-not-found';
-    url.searchParams.set('slug', slug);
+    if (slug) {
+      url.searchParams.set('slug', slug);
+    }
     return NextResponse.rewrite(url);
   }
 
