@@ -29,6 +29,8 @@ final class IdentityServiceProvider extends ServiceProvider
         $this->app->singleton(Services\SignupHandoffService::class);
         $this->app->singleton(Services\TotpService::class);
         $this->app->singleton(Services\PlatformMfaService::class);
+        $this->app->singleton(Services\MerchantMfaService::class);
+        $this->app->singleton(Services\MerchantLoginNotifier::class);
     }
 
     public function boot(): void

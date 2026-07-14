@@ -7,6 +7,8 @@ use Platform\Identity\Http\Controllers\CustomerAuthController;
 use Platform\Identity\Http\Controllers\HealthController;
 use Platform\Identity\Http\Controllers\MeController;
 use Platform\Identity\Http\Controllers\MerchantAuthController;
+use Platform\Identity\Http\Controllers\MerchantMfaController;
+use Platform\Identity\Http\Controllers\MerchantSessionController;
 use Platform\Identity\Http\Controllers\PlatformAuthController;
 use Platform\Identity\Http\Controllers\PlatformMfaController;
 
@@ -52,6 +54,34 @@ Route::prefix('v1/auth')->group(function (): void {
         Route::post('/verify', [PlatformMfaController::class, 'verify'])
             ->middleware(['throttle:10,1'])
             ->name('identity.auth.platform.mfa.verify');
+    });
+
+    Route::prefix('merchant/mfa')->group(function (): void {
+        Route::post('/setup', [MerchantMfaController::class, 'setup'])
+            ->middleware(['throttle:10,1'])
+            ->name('identity.auth.merchant.mfa.setup');
+
+        Route::post('/confirm', [MerchantMfaController::class, 'confirm'])
+            ->middleware(['throttle:10,1'])
+            ->name('identity.auth.merchant.mfa.confirm');
+
+        Route::post('/verify', [MerchantMfaController::class, 'verify'])
+            ->middleware(['throttle:10,1'])
+            ->name('identity.auth.merchant.mfa.verify');
+    });
+
+    Route::middleware('auth:sanctum')->prefix('merchant/sessions')->group(function (): void {
+        Route::get('/', [MerchantSessionController::class, 'index'])
+            ->middleware(['throttle:30,1'])
+            ->name('identity.auth.merchant.sessions.index');
+
+        Route::post('/', [MerchantSessionController::class, 'store'])
+            ->middleware(['throttle:10,1'])
+            ->name('identity.auth.merchant.sessions.store');
+
+        Route::delete('/{id}', [MerchantSessionController::class, 'destroy'])
+            ->middleware(['throttle:30,1'])
+            ->name('identity.auth.merchant.sessions.destroy');
     });
 
     Route::get('/me', [MeController::class, 'show'])

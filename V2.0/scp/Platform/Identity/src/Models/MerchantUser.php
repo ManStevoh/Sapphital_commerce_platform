@@ -33,6 +33,8 @@ final class MerchantUser extends Authenticatable
         'password',
         'role',
         'mfa_secret',
+        'mfa_confirmed_at',
+        'mfa_backup_codes',
     ];
 
     /**
@@ -41,6 +43,7 @@ final class MerchantUser extends Authenticatable
     protected $hidden = [
         'password',
         'mfa_secret',
+        'mfa_backup_codes',
     ];
 
     /**
@@ -53,6 +56,8 @@ final class MerchantUser extends Authenticatable
             'role' => MerchantUserRole::class,
             'password' => 'hashed',
             'mfa_secret' => 'encrypted',
+            'mfa_confirmed_at' => 'datetime',
+            'mfa_backup_codes' => 'encrypted:array',
         ];
     }
 }

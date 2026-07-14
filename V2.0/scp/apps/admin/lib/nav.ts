@@ -7,6 +7,7 @@ export const adminNav: AdminNavItem[] = [
   { href: '/ai', label: 'AI' },
   { href: '/gift-cards', label: 'Gift cards' },
   { href: '/domains', label: 'Domains' },
+  { href: '/security', label: 'Security' },
   { href: '/pages', label: 'Pages' },
   { href: '/blog', label: 'Blog' },
   { href: '/navigation', label: 'Navigation' },

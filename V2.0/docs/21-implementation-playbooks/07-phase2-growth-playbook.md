@@ -251,10 +251,10 @@ Per [Volume 6](../06-theme-engine/README.md):
 
 ## §8 Merchant MFA & Security Phase 2
 
-- [ ] MFA mandatory for merchant Owner accounts
-- [ ] Session management: view active sessions, revoke
-- [ ] Login notification email on new device
-- [ ] API token rotation UI
+- [x] MFA mandatory for merchant Owner accounts
+- [x] Session management: view active sessions, revoke
+- [x] Login notification email on new device
+- [x] API token rotation UI
 
 ---
 
@@ -274,7 +274,7 @@ Per [Volume 6](../06-theme-engine/README.md):
 | 10 | Custom domains | §5.3 | ☑ |
 | 11 | On-call + status page | §6 | ☐ |
 | 12 | Food, Services, Education, Digital themes | §7 | ☐ |
-| 13 | Merchant MFA | §8 | ☐ |
+| 13 | Merchant MFA | §8 | ☑ |
 
 ---
 

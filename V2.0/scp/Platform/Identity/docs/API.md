@@ -19,18 +19,42 @@
 }
 ```
 
-**Response:** 200
+**Response:** 200 — full access (non-Owner, or MFA disabled):
 
 ```json
 {
   "token": "<sanctum-plain-text-token>",
-  "token_type": "Bearer"
+  "token_type": "Bearer",
+  "tenant_id": "<uuid>"
 }
 ```
+
+When `MERCHANT_MFA_ENFORCED` and principal is **Owner**:
+
+- Not enrolled → `{ "mfa_enrollment_required": true, "token": "<setup>", "token_type": "Bearer", "tenant_id": "…" }`
+- Enrolled → `{ "mfa_required": true, "token": "<challenge>", "token_type": "Bearer", "tenant_id": "…" }`
 
 **Errors:** 401 `{"message":"Invalid credentials."}` (uniform — no account enumeration)
 
 **Route name:** `identity.auth.merchant.login`
+
+---
+
+### POST /api/v1/auth/merchant/mfa/setup · confirm · verify
+
+**Permission:** pending MFA Sanctum token (`mfa:setup` or `mfa:challenge`)
+
+Mirrors platform MFA. Confirm/verify replace the pending token with a `merchant:access` token and send a login notification.
+
+---
+
+### GET|POST|DELETE /api/v1/auth/merchant/sessions[/{id}]
+
+**Permission:** Sanctum token with `merchant:access` (or `*`)
+
+- `GET` — list active Sanctum tokens (sessions + API tokens), capped at 50
+- `POST` `{ "name": "ci-integration" }` — mint a new API token (plain text returned once)
+- `DELETE /{id}` — revoke a token
 
 ---
 

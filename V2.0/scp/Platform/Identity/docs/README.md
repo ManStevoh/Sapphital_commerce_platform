@@ -1,7 +1,7 @@
 # Platform Identity
 
 **Package:** `platform/identity`  
-**Version:** 0.2.0  
+**Version:** 0.3.0  
 **Layer:** Platform Kernel (Layer 1)  
 **Traceability:** ADR-006, ADR-023, Platform OS Ch. 13, SCP-TASK-0003
 
@@ -35,6 +35,13 @@ Phase 1 login endpoints issue Sanctum personal access tokens for API simplicity.
 - `POST /api/v1/auth/customer/logout`
 - Account: `GET /api/v1/commerce/account/orders`, address book CRUD
 - `customer_addresses` table (RLS); orders optionally link `customer_id`
+
+## Merchant MFA & sessions (Phase 2 §8)
+
+- Owner MFA mandatory when `MERCHANT_MFA_ENFORCED=true` (Totp + backup codes)
+- Setup/confirm/verify under `/api/v1/auth/merchant/mfa/*`
+- Session list/create/revoke under `/api/v1/auth/merchant/sessions`
+- Login notification on full-access token issue
 
 ## Documentation
 

@@ -9,10 +9,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Platform\Identity\Models\MerchantUser;
+use Platform\Identity\Services\MerchantLoginNotifier;
+use Platform\Identity\Services\MerchantMfaService;
 use Platform\Identity\Services\SignupHandoffService;
 
 final class MerchantAuthController
 {
+    public function __construct(
+        private readonly MerchantMfaService $mfa,
+        private readonly MerchantLoginNotifier $loginNotifier,
+    ) {}
+
     public function login(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -30,12 +37,7 @@ final class MerchantAuthController
             ], 401);
         }
 
-        $token = $user->createToken('merchant-api')->plainTextToken;
-
-        return response()->json([
-            'token' => $token,
-            'token_type' => 'Bearer',
-        ]);
+        return $this->issueAuthResponse($request, $user);
     }
 
     public function handoff(Request $request, SignupHandoffService $handoff): JsonResponse
@@ -62,12 +64,43 @@ final class MerchantAuthController
             ], 422);
         }
 
-        $token = $user->createToken('merchant-handoff')->plainTextToken;
+        return $this->issueAuthResponse($request, $user, 'merchant-handoff');
+    }
+
+    private function issueAuthResponse(
+        Request $request,
+        MerchantUser $user,
+        string $fullTokenName = 'merchant-api',
+    ): JsonResponse {
+        if ($this->mfa->isRequiredFor($user)) {
+            if (! $this->mfa->isEnrolled($user)) {
+                $pending = $this->mfa->issueSetupToken($user);
+
+                return response()->json([
+                    'mfa_enrollment_required' => true,
+                    'token' => $pending->plainTextToken,
+                    'token_type' => 'Bearer',
+                    'tenant_id' => $user->tenant_id,
+                ]);
+            }
+
+            $pending = $this->mfa->issueChallengeToken($user);
+
+            return response()->json([
+                'mfa_required' => true,
+                'token' => $pending->plainTextToken,
+                'token_type' => 'Bearer',
+                'tenant_id' => $user->tenant_id,
+            ]);
+        }
+
+        $token = $this->mfa->issueFullAccessToken($user, $fullTokenName);
+        $this->loginNotifier->notify($user, $request);
 
         return response()->json([
-            'token' => $token,
+            'token' => $token->plainTextToken,
             'token_type' => 'Bearer',
-            'tenant_id' => $payload['tenant_id'],
+            'tenant_id' => $user->tenant_id,
         ]);
     }
 }

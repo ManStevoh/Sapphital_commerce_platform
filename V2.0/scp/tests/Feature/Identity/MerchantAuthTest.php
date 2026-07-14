@@ -10,8 +10,10 @@ use Platform\Tenancy\Models\Tenant;
 
 final class MerchantAuthTest extends IdentityTestCase
 {
-    public function test_merchant_login_succeeds_with_valid_credentials(): void
+    public function test_merchant_login_succeeds_with_valid_credentials_when_mfa_disabled(): void
     {
+        config(['identity.merchant_mfa_enforced' => false]);
+
         $tenant = Tenant::query()->create([
             'slug' => 'acme-store',
             'name' => 'Acme Store',
@@ -35,6 +37,7 @@ final class MerchantAuthTest extends IdentityTestCase
             ->assertJsonStructure([
                 'token',
                 'token_type',
+                'tenant_id',
             ])
             ->assertJson([
                 'token_type' => 'Bearer',

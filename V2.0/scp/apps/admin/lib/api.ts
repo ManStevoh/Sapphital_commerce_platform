@@ -3,6 +3,32 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
 export interface LoginResponse {
   token: string;
   token_type: string;
+  tenant_id?: string;
+  mfa_required?: boolean;
+  mfa_enrollment_required?: boolean;
+}
+
+export interface MfaSetupResponse {
+  data: {
+    secret: string;
+    otpauth_uri: string;
+  };
+}
+
+export interface MfaConfirmResponse {
+  backup_codes: string[];
+  token: string;
+  token_type: string;
+  tenant_id: string;
+}
+
+export interface MerchantSession {
+  id: string;
+  name: string;
+  abilities: string[];
+  last_used_at: string | null;
+  created_at: string | null;
+  is_current: boolean;
 }
 
 export interface MeResponse {
@@ -351,6 +377,102 @@ export async function merchantLogin(
   });
 
   return parseJson<LoginResponse>(response);
+}
+
+export async function merchantMfaSetup(pendingToken: string): Promise<MfaSetupResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/merchant/mfa/setup`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${pendingToken}`,
+    },
+  });
+
+  return parseJson<MfaSetupResponse>(response);
+}
+
+export async function merchantMfaConfirm(
+  pendingToken: string,
+  secret: string,
+  code: string,
+): Promise<MfaConfirmResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/merchant/mfa/confirm`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${pendingToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ secret, code }),
+  });
+
+  return parseJson<MfaConfirmResponse>(response);
+}
+
+export async function merchantMfaVerify(
+  pendingToken: string,
+  code: string,
+): Promise<LoginResponse> {
+  const response = await fetch(`${API_URL}/api/v1/auth/merchant/mfa/verify`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${pendingToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ code }),
+  });
+
+  return parseJson<LoginResponse>(response);
+}
+
+export async function fetchMerchantSessions(token: string): Promise<MerchantSession[]> {
+  const response = await fetch(`${API_URL}/api/v1/auth/merchant/sessions`, {
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const result = await parseJson<{ data: MerchantSession[] }>(response);
+  return result.data;
+}
+
+export async function createMerchantSessionToken(
+  token: string,
+  name: string,
+): Promise<{ id: string; name: string; token: string; token_type: string }> {
+  const response = await fetch(`${API_URL}/api/v1/auth/merchant/sessions`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ name }),
+  });
+
+  const result = await parseJson<{
+    data: { id: string; name: string; token: string; token_type: string };
+  }>(response);
+  return result.data;
+}
+
+export async function revokeMerchantSession(token: string, sessionId: string): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/v1/auth/merchant/sessions/${encodeURIComponent(sessionId)}`,
+    {
+      method: 'DELETE',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  if (!response.ok && response.status !== 204) {
+    await parseJson(response);
+  }
 }
 
 export interface MerchantHandoffResponse extends LoginResponse {

@@ -41,6 +41,7 @@
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="TURNSTILE_ENABLED" value="false"/>
+        <env name="MERCHANT_MFA_ENFORCED" value="false"/>
         <env name="AI_PRIMARY_PROVIDER" value="fake"/>
         <env name="AI_FALLBACK_PROVIDER" value="null"/>
     </php>
