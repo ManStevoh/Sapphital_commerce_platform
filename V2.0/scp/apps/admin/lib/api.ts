@@ -1709,3 +1709,71 @@ export async function disableGiftCard(tenantId: string, giftCardId: string): Pro
   const result = await parseJson<{ data: GiftCard }>(response);
   return result.data;
 }
+
+export interface CustomDomainDnsInstructions {
+  txt_host: string;
+  txt_value: string;
+  cname_host: string;
+  cname_target: string;
+}
+
+export interface CustomDomainRecord {
+  id: string;
+  domain: string;
+  is_primary: boolean;
+  status: string;
+  verified_at: string | null;
+  dns: CustomDomainDnsInstructions;
+}
+
+export async function fetchCustomDomains(tenantId: string): Promise<CustomDomainRecord[]> {
+  const response = await fetch(`${API_URL}/api/v1/platform/tenancy/domains`, {
+    headers: tenantHeaders(tenantId),
+  });
+  const result = await parseJson<{ data: CustomDomainRecord[] }>(response);
+  return result.data;
+}
+
+export async function createCustomDomain(
+  tenantId: string,
+  domain: string,
+): Promise<CustomDomainRecord> {
+  const response = await fetch(`${API_URL}/api/v1/platform/tenancy/domains`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ domain, is_primary: true }),
+  });
+  const result = await parseJson<{ data: CustomDomainRecord }>(response);
+  return result.data;
+}
+
+export async function verifyCustomDomain(
+  tenantId: string,
+  domainId: string,
+): Promise<CustomDomainRecord> {
+  const response = await fetch(
+    `${API_URL}/api/v1/platform/tenancy/domains/${encodeURIComponent(domainId)}/verify`,
+    {
+      method: 'POST',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+  const result = await parseJson<{ data: CustomDomainRecord }>(response);
+  return result.data;
+}
+
+export async function deleteCustomDomain(tenantId: string, domainId: string): Promise<void> {
+  const response = await fetch(
+    `${API_URL}/api/v1/platform/tenancy/domains/${encodeURIComponent(domainId)}`,
+    {
+      method: 'DELETE',
+      headers: tenantHeaders(tenantId),
+    },
+  );
+  if (!response.ok && response.status !== 204) {
+    await parseJson(response);
+  }
+}

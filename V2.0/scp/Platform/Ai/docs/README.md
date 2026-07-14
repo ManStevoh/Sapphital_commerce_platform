@@ -18,7 +18,10 @@
 |--------|------|------|
 | POST | `/api/v1/platform/ai/product-description` | merchant + `catalog.write` |
 | POST | `/api/v1/platform/ai/seo-meta` | merchant + `catalog.write` |
+| POST | `/api/v1/platform/ai/collection-description` | merchant + `catalog.write` |
+| POST | `/api/v1/platform/ai/support-reply` | merchant + `catalog.write` |
+| POST | `/api/v1/platform/ai/zero-result-suggest` | merchant + `catalog.write` |
 | GET | `/api/v1/platform/ai/usage` | merchant |
 | PUT | `/api/v1/platform/ai/settings` | merchant (`ai_enabled`) |
 
-Product description returns an **editable draft** only — never auto-publishes.
+All generators return an **editable draft** only — never auto-publish. Support reply and prompts scrub PII before completion.
