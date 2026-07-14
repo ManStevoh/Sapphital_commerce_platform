@@ -6,6 +6,7 @@ import { AdminShell, Alert, Button, Card, Table, Td, Th } from '@sapphital/scp-u
 import {
   clearAuth,
   formatNgn,
+  generateSupportReply,
   getStoredTenantId,
   getStoredToken,
   listOrders,
@@ -22,6 +23,9 @@ export default function OrdersPage() {
   const [actionId, setActionId] = useState<string | null>(null);
   const [partialAmountById, setPartialAmountById] = useState<Record<string, string>>({});
   const [reasonById, setReasonById] = useState<Record<string, string>>({});
+  const [supportQuestionById, setSupportQuestionById] = useState<Record<string, string>>({});
+  const [supportDraftById, setSupportDraftById] = useState<Record<string, string>>({});
+  const [supportBusyId, setSupportBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     const token = getStoredToken();
@@ -66,6 +70,40 @@ export default function OrdersPage() {
       setError(err instanceof Error ? err.message : 'Refund failed.');
     } finally {
       setActionId(null);
+    }
+  }
+
+  async function handleSupportSuggest(order: Order) {
+    const tenantId = getStoredTenantId();
+    const question = supportQuestionById[order.id]?.trim();
+
+    if (!tenantId || !question) {
+      setError('Enter the customer question before generating a reply.');
+      return;
+    }
+
+    setSupportBusyId(order.id);
+    setError(null);
+
+    try {
+      const itemsSummary =
+        order.items.map((item) => `${item.product_name} x${item.quantity}`).join(', ') ||
+        'no line items';
+      const result = await generateSupportReply(tenantId, {
+        order_number: order.order_number,
+        status: order.status,
+        total_kobo: order.total_kobo,
+        items_summary: itemsSummary,
+        question,
+      });
+      setSupportDraftById((current) => ({
+        ...current,
+        [order.id]: result.draft,
+      }));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Support reply generation failed.');
+    } finally {
+      setSupportBusyId(null);
     }
   }
 
@@ -161,6 +199,7 @@ export default function OrdersPage() {
               <Th>Customer</Th>
               <Th>Created</Th>
               <Th>Refund</Th>
+              <Th>Support AI</Th>
             </tr>
           </thead>
           <tbody>
@@ -177,6 +216,36 @@ export default function OrdersPage() {
                     : '—'}
                 </Td>
                 <Td>{renderRefundActions(order)}</Td>
+                <Td>
+                  <Card>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                      <input
+                        type="text"
+                        placeholder="Customer question"
+                        value={supportQuestionById[order.id] ?? ''}
+                        onChange={(event) =>
+                          setSupportQuestionById((current) => ({
+                            ...current,
+                            [order.id]: event.target.value,
+                          }))
+                        }
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        disabled={supportBusyId === order.id}
+                        onClick={() => handleSupportSuggest(order)}
+                      >
+                        {supportBusyId === order.id ? 'Generating…' : 'Suggest reply'}
+                      </Button>
+                      {supportDraftById[order.id] && (
+                        <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit', margin: 0 }}>
+                          {supportDraftById[order.id]}
+                        </pre>
+                      )}
+                    </div>
+                  </Card>
+                </Td>
               </tr>
             ))}
           </tbody>

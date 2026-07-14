@@ -9,6 +9,7 @@ import {
   fetchCollection,
   fetchCollectionProducts,
   fetchProducts,
+  generateCollectionDescription,
   getStoredTenantId,
   getStoredToken,
   syncCollectionProducts,
@@ -38,6 +39,7 @@ export default function CollectionEditPage() {
   const [type, setType] = useState<CollectionType>('manual');
   const [status, setStatus] = useState<CollectionStatus>('draft');
   const [sortOrder, setSortOrder] = useState('manual');
+  const [aiWorking, setAiWorking] = useState(false);
   const [preset, setPreset] = useState('new_arrivals');
   const [startsAt, setStartsAt] = useState('');
   const [endsAt, setEndsAt] = useState('');
@@ -131,6 +133,37 @@ export default function CollectionEditPage() {
     }
   }
 
+  async function handleGenerateDescription() {
+    const tenantId = getStoredTenantId();
+
+    if (!tenantId || !title.trim()) {
+      setError('Title is required before generating a description.');
+      return;
+    }
+
+    setAiWorking(true);
+    setError(null);
+
+    try {
+      const draft = await generateCollectionDescription(tenantId, {
+        title: title.trim(),
+        type,
+        rules:
+          type === 'smart'
+            ? {
+                preset,
+                days: 30,
+              }
+            : null,
+      });
+      setDescription(draft.draft);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'AI generation failed.');
+    } finally {
+      setAiWorking(false);
+    }
+  }
+
   function toggleProduct(productId: string) {
     setSelectedProductIds((current) =>
       current.includes(productId)
@@ -178,6 +211,14 @@ export default function CollectionEditPage() {
               rows={3}
             />
           </label>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={aiWorking || working}
+            onClick={handleGenerateDescription}
+          >
+            {aiWorking ? 'Generating…' : 'Generate description'}
+          </Button>
           <label style={{ display: 'grid', gap: '0.25rem' }}>
             <span>Type</span>
             <select value={type} onChange={(event) => setType(event.target.value as CollectionType)}>

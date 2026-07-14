@@ -9,6 +9,7 @@ import {
   deleteSearchSynonym,
   fetchSearchAnalytics,
   fetchSearchSynonyms,
+  generateZeroResultSuggest,
   getStoredTenantId,
   getStoredToken,
   type SearchAnalytics,
@@ -25,6 +26,8 @@ export default function SearchAdminPage() {
   const [working, setWorking] = useState(false);
   const [term, setTerm] = useState('');
   const [synonym, setSynonym] = useState('');
+  const [suggestDraft, setSuggestDraft] = useState<string | null>(null);
+  const [suggestQuery, setSuggestQuery] = useState<string | null>(null);
 
   useEffect(() => {
     const token = getStoredToken();
@@ -70,6 +73,30 @@ export default function SearchAdminPage() {
       setSynonym('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create synonym.');
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function handleSuggest(query: string, searches: number) {
+    const tenantId = getStoredTenantId();
+
+    if (!tenantId) {
+      return;
+    }
+
+    setWorking(true);
+    setError(null);
+
+    try {
+      const result = await generateZeroResultSuggest(tenantId, {
+        query,
+        search_count: searches,
+      });
+      setSuggestQuery(query);
+      setSuggestDraft(result.draft);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate suggestions.');
     } finally {
       setWorking(false);
     }
@@ -146,6 +173,7 @@ export default function SearchAdminPage() {
             <tr>
               <Th>Query</Th>
               <Th>Searches</Th>
+              <Th />
             </tr>
           </thead>
           <tbody>
@@ -153,11 +181,29 @@ export default function SearchAdminPage() {
               <tr key={row.query}>
                 <Td>{row.query}</Td>
                 <Td>{row.searches}</Td>
+                <Td>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    disabled={working}
+                    onClick={() => handleSuggest(row.query, row.searches)}
+                  >
+                    Suggest products
+                  </Button>
+                </Td>
               </tr>
             ))}
           </tbody>
         </Table>
         {(analytics?.zero_result_queries.length ?? 0) === 0 && <p>No zero-result queries.</p>}
+        {suggestDraft && (
+          <div style={{ marginTop: 16 }}>
+            <p style={{ marginTop: 0 }}>
+              AI draft for <strong>{suggestQuery}</strong> (edit before acting):
+            </p>
+            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>{suggestDraft}</pre>
+          </div>
+        )}
       </Card>
 
       <Card title="Synonym dictionary">

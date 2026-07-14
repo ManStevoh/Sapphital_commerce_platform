@@ -1601,6 +1601,60 @@ export async function updateAiSettings(
   return result.data;
 }
 
+export async function generateCollectionDescription(
+  tenantId: string,
+  input: { title: string; type?: string; rules?: Record<string, unknown> | null },
+): Promise<AiDescriptionDraft> {
+  const response = await fetch(`${API_URL}/api/v1/platform/ai/collection-description`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: AiDescriptionDraft }>(response);
+  return result.data;
+}
+
+export async function generateSupportReply(
+  tenantId: string,
+  input: {
+    order_number: string;
+    status: string;
+    total_kobo: number;
+    items_summary: string;
+    question: string;
+  },
+): Promise<AiDescriptionDraft> {
+  const response = await fetch(`${API_URL}/api/v1/platform/ai/support-reply`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: AiDescriptionDraft }>(response);
+  return result.data;
+}
+
+export async function generateZeroResultSuggest(
+  tenantId: string,
+  input: { query: string; search_count?: number },
+): Promise<AiDescriptionDraft> {
+  const response = await fetch(`${API_URL}/api/v1/platform/ai/zero-result-suggest`, {
+    method: 'POST',
+    headers: {
+      ...tenantHeaders(tenantId),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  });
+  const result = await parseJson<{ data: AiDescriptionDraft }>(response);
+  return result.data;
+}
+
 export interface GiftCard {
   id: string;
   code: string;

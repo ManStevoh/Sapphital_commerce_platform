@@ -126,6 +126,9 @@ Build per [Volume 9 Ch. 01–04](../09-ai-platform/README.md):
 **Checklist:**
 
 - [x] Product description: merchant clicks "Generate" → editable draft in ≤ 5 seconds
+- [x] Collection description generator (rules-aware draft; merchant edits before save)
+- [x] Support reply suggest from order context (merchant edits before send)
+- [x] Zero-result search → product addition suggestions in admin Search
 - [x] AI features require explicit merchant action (no auto-publish)
 - [x] Generated content watermark in audit log
 - [x] Usage dashboard in admin: tokens consumed this month

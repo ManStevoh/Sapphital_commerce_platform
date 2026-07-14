@@ -109,6 +109,81 @@ final class ProductDescriptionAiTest extends PlatformTestCase
         );
     }
 
+    public function test_merchant_can_generate_collection_description_draft(): void
+    {
+        $tenant = $this->createTenant();
+        $headers = $this->aiHeaders($tenant);
+
+        $this->postJson('/api/v1/platform/ai/collection-description', [
+            'title' => 'New Arrivals',
+            'type' => 'smart',
+            'rules' => ['preset' => 'new_arrivals'],
+        ], $headers)
+            ->assertOk()
+            ->assertJsonPath('data.requires_merchant_edit', true)
+            ->assertJsonPath('data.watermark', 'ai-generated-draft');
+
+        $this->assertDatabaseHas('ai_usage_events', [
+            'tenant_id' => $tenant->id,
+            'feature_key' => 'collection_description',
+        ]);
+    }
+
+    public function test_merchant_can_generate_support_reply_draft(): void
+    {
+        $tenant = $this->createTenant();
+        $headers = $this->aiHeaders($tenant);
+
+        $response = $this->postJson('/api/v1/platform/ai/support-reply', [
+            'order_number' => 'ORD-20260714-ABC',
+            'status' => 'paid',
+            'total_kobo' => 150_000,
+            'items_summary' => 'Ankara Dress x1',
+            'question' => 'When will my order ship? email shop-leak@example.com',
+        ], $headers);
+
+        $response->assertOk()
+            ->assertJsonPath('data.requires_merchant_edit', true);
+
+        $draft = (string) $response->json('data.draft');
+        $this->assertStringNotContainsString('shop-leak@example.com', $draft);
+        $this->assertDatabaseHas('ai_usage_events', [
+            'tenant_id' => $tenant->id,
+            'feature_key' => 'support_reply',
+        ]);
+    }
+
+    public function test_merchant_can_generate_zero_result_suggestions(): void
+    {
+        $tenant = $this->createTenant();
+        $headers = $this->aiHeaders($tenant);
+
+        $this->postJson('/api/v1/platform/ai/zero-result-suggest', [
+            'query' => 'solar inverter',
+            'search_count' => 12,
+        ], $headers)
+            ->assertOk()
+            ->assertJsonPath('data.requires_merchant_edit', true)
+            ->assertJsonPath('data.watermark', 'ai-generated-draft');
+
+        $this->assertDatabaseHas('ai_usage_events', [
+            'tenant_id' => $tenant->id,
+            'feature_key' => 'zero_result_suggest',
+        ]);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function aiHeaders(Tenant $tenant): array
+    {
+        $merchant = $this->createMerchantForTenant($tenant, 'ai-'.Str::random(4).'@test.com');
+        $this->createActiveSubscription($tenant->id);
+        $token = $merchant->createToken('ai')->plainTextToken;
+
+        return $this->merchantAuthHeaders($tenant->id, $token);
+    }
+
     /**
      * @param  array<string, mixed>  $settings
      */

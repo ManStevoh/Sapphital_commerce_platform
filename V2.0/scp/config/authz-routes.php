@@ -159,6 +159,9 @@ return [
 
     'ai.product-description.generate' => ['method' => 'POST', 'uri' => '/api/v1/platform/ai/product-description', 'archetype' => 'merchant'],
     'ai.seo-meta.generate' => ['method' => 'POST', 'uri' => '/api/v1/platform/ai/seo-meta', 'archetype' => 'merchant'],
+    'ai.collection-description.generate' => ['method' => 'POST', 'uri' => '/api/v1/platform/ai/collection-description', 'archetype' => 'merchant'],
+    'ai.support-reply.generate' => ['method' => 'POST', 'uri' => '/api/v1/platform/ai/support-reply', 'archetype' => 'merchant'],
+    'ai.zero-result-suggest.generate' => ['method' => 'POST', 'uri' => '/api/v1/platform/ai/zero-result-suggest', 'archetype' => 'merchant'],
     'ai.usage.show' => ['method' => 'GET', 'uri' => '/api/v1/platform/ai/usage', 'archetype' => 'merchant'],
     'ai.settings.update' => ['method' => 'PUT', 'uri' => '/api/v1/platform/ai/settings', 'archetype' => 'merchant'],
 ];
