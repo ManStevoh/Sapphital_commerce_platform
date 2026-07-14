@@ -19,3 +19,4 @@ Schedule::command('checkout:expire-gift-cards')->hourly();
 Schedule::command('tenancy:verify-custom-domains')->everyFiveMinutes();
 Schedule::command('messaging:poll-outbox')->everyMinute();
 Schedule::command('ops:synthetic-checkout-probe')->everyFiveMinutes();
+Schedule::command('ops:error-budget-report --json')->weeklyOn(1, '09:00');

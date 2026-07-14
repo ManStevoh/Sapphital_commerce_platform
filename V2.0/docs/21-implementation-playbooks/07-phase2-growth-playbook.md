@@ -220,8 +220,8 @@ Per [Volume 14](../14-operations/README.md):
 - [ ] On-call rotation with PagerDuty; escalation policy documented
 - [ ] Public status page at `status.sapphital.com` ([Volume 14 Ch. 08](../14-operations/08-status-page-communications.md)) — API scaffold complete
 - [x] Runbooks: RB-001 deploy, RB-002 rollback, RB-003 database restore, RB-004 webhook backlog
-- [ ] SLO error budget policy: freeze features when budget exhausted
-- [ ] Weekly ops review: incidents, SLO, cost, queue depth
+- [x] SLO error budget policy: freeze features when budget exhausted
+- [x] Weekly ops review: incidents, SLO, cost, queue depth
 - [ ] Support ticket system integrated (Intercom or Freshdesk)
 - [x] Merchant support macros for top 20 issues
 - [x] Synthetic monitoring from Nigeria probe (checkout every 5 minutes)

@@ -54,4 +54,16 @@ final class OpsStatusTest extends PlatformTestCase
             ->expectsOutput('probe=themes url=https://status-probe.sapphital.test/api/v1/commerce/storefront/themes')
             ->assertSuccessful();
     }
+
+    public function test_error_budget_report_enforces_freeze_when_budget_exhausted(): void
+    {
+        $this->artisan('ops:error-budget-report', [
+            '--availability' => '99.7',
+            '--checkout' => '99.8',
+            '--webhooks' => '99.9',
+        ])
+            ->expectsOutput('policy_state=exhausted')
+            ->expectsOutput('policy_action=Feature freeze; executive sign-off required for any deploy.')
+            ->assertSuccessful();
+    }
 }
